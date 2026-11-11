@@ -69,7 +69,7 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public void mostrarOI() {
-        PilaFija pila = new PilaFija(10); // Tamaño arbitrario, suficiente para pruebas
+        PilaFija pila = new PilaFija(cantidad()); // Capacidad para todos los nodos actuales
         Nodo temporal = primero;
 
         // Guardar elementos en la pila
@@ -92,7 +92,7 @@ public class ListaDin implements ListaDatos {
 
         // Recorrer la lista y agregar coincidencias
         while (temporal != null) {
-            if (valor.toString().equalsIgnoreCase(temporal.getDato().toString())) {
+            if (iguales(valor, temporal.getDato())) {
                 resultado.poner(temporal.getDato());
             }
             temporal = temporal.getLigaDer();
@@ -102,7 +102,7 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public Arreglo aListaEstatica() {
-        Arreglo resultado = new Arreglo(10); // Tamaño inicial arbitrario
+        Arreglo resultado = new Arreglo(cantidad()); // Capacidad para todos los nodos actuales
         Nodo temporal = primero;
 
         // Copiar elementos al arreglo
@@ -115,7 +115,7 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public Arreglo aListaEstatica(Arreglo elementosADescartar) {
-        Arreglo resultado = new Arreglo(10); // Tamaño inicial arbitrario
+        Arreglo resultado = new Arreglo(cantidad()); // Capacidad para todos los nodos actuales
         Nodo temporal = primero;
 
         // Copiar elementos no presentes en elementosADescartar
@@ -131,6 +131,8 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public Arreglo2D aMatriz2D(int filas, int columnas) {
+        if (filas < 0 || columnas < 0) return null;
+        if (filas == 0 || columnas == 0) return new Arreglo2D(filas, columnas);
         Arreglo2D matriz = new Arreglo2D(filas, columnas);
         Nodo temporal = primero;
         int i = 0, j = 0;
@@ -161,6 +163,7 @@ public class ListaDin implements ListaDatos {
     public boolean agregarLista(ListaDatos listaDatos2) {
         if (listaDatos2 instanceof ListaDin) {
             ListaDin lista = (ListaDin) listaDatos2;
+            if (lista == this) lista = (ListaDin) clonar();
             Nodo temporal = lista.primero;
 
             // Agregar cada elemento al final
@@ -245,7 +248,7 @@ public class ListaDin implements ListaDatos {
 
         // Contar coincidencias
         while (temporal != null) {
-            if (valor.toString().equalsIgnoreCase(temporal.getDato().toString())) {
+            if (iguales(valor, temporal.getDato())) {
                 contador++;
             }
             temporal = temporal.getLigaDer();
@@ -280,7 +283,7 @@ public class ListaDin implements ListaDatos {
 
         // Reemplazar hasta numVeces
         while (temporal != null && contador < numVeces) {
-            if (valorViejo.toString().equalsIgnoreCase(temporal.getDato().toString())) {
+            if (iguales(valorViejo, temporal.getDato())) {
                 temporal.setDato(valorNuevo);
                 contador++;
             }
@@ -291,6 +294,7 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public boolean cambiar(int indice, Object valor) {
+        if (indice < 0) return false;
         Nodo temporal = primero;
         int contador = 0;
 
@@ -308,6 +312,7 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public Object obtener(int indice) {
+        if (indice < 0) return null;
         Nodo temporal = primero;
         int contador = 0;
 
@@ -330,7 +335,7 @@ public class ListaDin implements ListaDatos {
 
         // Comparar elemento por elemento
         while (temp1 != null && temp2 != null) {
-            if (!temp1.getDato().toString().equalsIgnoreCase(temp2.getDato().toString())) {
+            if (!iguales(temp1.getDato(), temp2.getDato())) {
                 return false;
             }
             temp1 = temp1.getLigaDer();
@@ -341,7 +346,7 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public boolean modificar(Object valorViejo, Object valorNuevo, int numVeces) {
-        return false;
+        return cambiar(valorViejo, valorNuevo, numVeces);
     }
 
     @Override
@@ -407,7 +412,7 @@ public class ListaDin implements ListaDatos {
 
         // Buscar y eliminar todas las ocurrencias
         while (actual != null) {
-            if (valor.toString().equalsIgnoreCase(actual.getDato().toString())) {
+            if (iguales(valor, actual.getDato())) {
                 eliminados.poner(actual.getDato());
                 if (anterior == null) {
                     primero = actual.getLigaDer();
@@ -439,17 +444,29 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public Object quitar() {
-        return null;
+        if (vacia()) return null;
+        Nodo anterior = null;
+        Nodo actual = primero;
+        while (actual.getLigaDer() != null) {
+            anterior = actual;
+            actual = actual.getLigaDer();
+        }
+        Object respaldo = actual.getDato();
+        if (anterior == null) primero = null;
+        else anterior.setLigaDer(null);
+        ultimo = anterior;
+        iterador = null;
+        return respaldo;
     }
 
     @Override
     public Arreglo buscarValores(Object valor) {
-        Arreglo posiciones = new Arreglo(10);
+        Arreglo posiciones = new Arreglo(cantidad());
         Nodo temporal = primero;
         int indice = 0;
 
         while (temporal != null) {
-            if (valor.toString().equalsIgnoreCase(temporal.getDato().toString())) {
+            if (iguales(valor, temporal.getDato())) {
                 posiciones.poner(indice);
             }
             temporal = temporal.getLigaDer();
@@ -586,32 +603,34 @@ public class ListaDin implements ListaDatos {
     @Override
     public ListaDatos arregloDesordenado() {
         ListaDin desordenada = (ListaDin) clonar();
+        int total = cantidad();
         // Mezclar usando intercambio aleatorio (simple para evitar librerías)
         // Nota: Implementación básica, puede mejorarse
+        for (int i = total - 1; i > 0; i--) {
+            int j = (int) (Math.random() * (i + 1));
+            Object temporal = desordenada.obtener(i);
+            desordenada.cambiar(i, desordenada.obtener(j));
+            desordenada.cambiar(j, temporal);
+        }
         return desordenada;
     }
 
     @Override
     public boolean esSublista(ListaDatos lista2) {
-        if (!(lista2 instanceof ListaDin)) {
-            return false;
-        }
+        if (!(lista2 instanceof ListaDin)) return false;
         ListaDin lista = (ListaDin) lista2;
-        Nodo temp1 = primero;
-        Nodo temp2 = lista.primero;
-
-        while (temp1 != null) {
-            if (temp2 == null) {
-                return true;
+        if (lista.vacia()) return true;
+        for (Nodo inicio = primero; inicio != null; inicio = inicio.getLigaDer()) {
+            Nodo actual = inicio;
+            Nodo buscado = lista.primero;
+            while (actual != null && buscado != null &&
+                    iguales(actual.getDato(), buscado.getDato())) {
+                actual = actual.getLigaDer();
+                buscado = buscado.getLigaDer();
             }
-            if (temp1.getDato().toString().equalsIgnoreCase(temp2.getDato().toString())) {
-                temp2 = temp2.getLigaDer();
-            } else {
-                temp2 = lista.primero;
-            }
-            temp1 = temp1.getLigaDer();
+            if (buscado == null) return true;
         }
-        return temp2 == null;
+        return false;
     }
 
     @Override
@@ -717,12 +736,12 @@ public class ListaDin implements ListaDatos {
 
     @Override
     public Object[] leerArreglo() {
-        return aListaEstatica().getDatos();
+        return aListaEstatica().leerArreglo();
     }
 
     @Override
     public void imprimirDesc() {
-
+        mostrarOI();
     }
 
     @Override
@@ -756,7 +775,7 @@ public class ListaDin implements ListaDatos {
         Nodo anterior = null;
         Nodo encontrado = primero;
 
-        while (encontrado != null && !valor.toString().equalsIgnoreCase(encontrado.getDato().toString())) {
+        while (encontrado != null && !iguales(valor, encontrado.getDato())) {
             anterior = encontrado;
             encontrado = encontrado.getLigaDer();
         }
@@ -774,4 +793,15 @@ public class ListaDin implements ListaDatos {
     public enum TipoTabla {
         RENGLON, COLUMNA
     }
+
+public int cantidad() {
+    int total = 0;
+    for (Nodo actual = primero; actual != null; actual = actual.getLigaDer()) total++;
+    return total;
+}
+
+private static boolean iguales(Object a, Object b) {
+    return a == null || b == null ? a == b : a.toString().equalsIgnoreCase(b.toString());
+}
+
 }

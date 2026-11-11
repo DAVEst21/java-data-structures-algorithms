@@ -14,3 +14,5 @@ find src/test/java -name '*.java' -print > target/jdk/test-sources.txt
     -d target/jdk/test-classes @target/jdk/test-sources.txt
 "$java_cmd" -Djava.awt.headless=true \
     -cp 'target/jdk/test-classes:target/jdk/classes:libs/*' comprobaciones.Comprobaciones
+"$java_cmd" -Djava.awt.headless=true \
+    -cp 'target/jdk/test-classes:target/jdk/classes:libs/*' comprobaciones.ComprobacionesAmpliadas

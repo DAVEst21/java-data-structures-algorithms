@@ -27,7 +27,7 @@ public class ColaFija implements LoteDatos {
 
     @Override
     public boolean lleno() {
-        if ((primero == 0 && ultimo == (capacidad - 1)) || (primero == (ultimo + 1))) {
+        if (capacidad == 0 || (primero == 0 && ultimo == (capacidad - 1)) || (primero == (ultimo + 1))) {
             return true;
         } else {
             return false;
@@ -58,6 +58,7 @@ public class ColaFija implements LoteDatos {
     public Object quitar() {
         if (vacio() == false) {
             Object respaldo = datos[primero];
+            datos[primero] = null;
             if (primero == ultimo) {//f
 
                 primero = -1;
@@ -79,7 +80,9 @@ public class ColaFija implements LoteDatos {
 
     @Override
     public void vaciar() {
-        throw new UnsupportedOperationException("Unimplemented method 'vaciar'");
+        while (!vacio()) quitar();
+        primero = -1;
+        ultimo = -1;
     }
 
     @Override
@@ -104,7 +107,6 @@ public class ColaFija implements LoteDatos {
 
     @Override
     public Object verTope() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'verTope'");
+        return vacio() ? null : datos[primero];
     }
 }
