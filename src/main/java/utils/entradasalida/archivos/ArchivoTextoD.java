@@ -6,57 +6,26 @@ import java.io.*;
 public class ArchivoTextoD {
 
     public static Arreglo leer(String archivo){
-        FileReader input=null;
-        int registro=0;
-        Arreglo datos=null;
-        BufferedReader buffer = null;
-
-        try {
-            String cadena=null;
-            input = new FileReader(archivo);
-            buffer = new BufferedReader(input);
-            datos=new Arreglo((int)buffer.lines().count());
-            buffer.close();
-            input.close();
-            input = new FileReader(archivo);
-            buffer = new BufferedReader(input);
-            while((cadena = buffer.readLine())!=null) {
-                datos.poner(cadena);
+        if (archivo == null) return null;
+        Arreglo datos;
+        try (BufferedReader buffer = new BufferedReader(new FileReader(archivo, java.nio.charset.StandardCharsets.UTF_8))) {
+            datos = new Arreglo((int) buffer.lines().count());
+        } catch (IOException | UncheckedIOException e) { return null; }
+        try (BufferedReader buffer = new BufferedReader(new FileReader(archivo, java.nio.charset.StandardCharsets.UTF_8))) {
+            String cadena;
+            while ((cadena = buffer.readLine()) != null) {
+                if (datos.poner(cadena) < 0) throw new IllegalStateException("El archivo cambió mientras se leía");
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
-            try{
-                input.close();
-                buffer.close();
-            }catch(IOException e){
-                e.printStackTrace();
-            }
-        }
+        } catch (IOException e) { return null; }
         return datos;
     }
     public static void escribir(Arreglo arreglo, String archivo){
-        FileWriter output=null;
-        try {
-            output = new FileWriter(archivo);
-            for(int posicion=0;posicion<arreglo.cantidad() -1 ;posicion++) {
-                output.write((String)arreglo.obtener(posicion)+ "\n");
+        if (arreglo == null || archivo == null) throw new IllegalArgumentException("Arreglo y archivo son obligatorios");
+        try (FileWriter output = new FileWriter(archivo, java.nio.charset.StandardCharsets.UTF_8)) {
+            for (int posicion = 0; posicion < arreglo.cantidad(); posicion++) {
+                if (posicion > 0) output.write("\n");
+                output.write(String.valueOf(arreglo.obtener(posicion)));
             }
-            output.write((String)arreglo.obtener(arreglo.cantidad() - 1));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
-            try{
-                output.close();
-            }catch(IOException e){
-                e.printStackTrace();
-            }
-        }
+        } catch (IOException e) { throw new UncheckedIOException("No se pudo escribir el archivo", e); }
     }
 }

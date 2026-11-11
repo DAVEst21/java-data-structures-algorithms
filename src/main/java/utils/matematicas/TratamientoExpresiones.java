@@ -14,59 +14,51 @@ public class TratamientoExpresiones {
 
     //Convertir expresión infija -> postfija
     public static String convertirInfijaPostfija(String infija) {
-        return "";
+        if (infija == null) return null;
+        registros.calculadora.Calculadora calculadora = new registros.calculadora.Calculadora(infija.length());
+        try { return calculadora.convertirPostfija(infija); }
+        catch (IllegalArgumentException e) { return null; }
     }
     //Convertir expresión infija -> prefija
 
     //Evaluar expresión infija
     public static Double evaluarInfija(String infija) {
-        //Convertir a prefija o postfija
-        String postfija = convertirInfijaPostfija(infija);
-        //Llama evaluar prefija o postfija
-        return evaluarPostfija(postfija);
+        if (infija == null) return null;
+        // Convertir a postfija usando el mismo algoritmo con pilas de la calculadora.
+        registros.calculadora.Calculadora calculadora = new registros.calculadora.Calculadora(infija.length());
+        try {
+            calculadora.convertirPostfija(infija);
+            return calculadora.evaluarExpresion();
+        } catch (IllegalArgumentException e) { return null; }
     }
 
     //Evaluar expresión postfija
     public static Double evaluarPostfija(String postfija) {
+        if (postfija == null || postfija.isBlank()) return null;
         PilaFija pila = new PilaFija(postfija.length());
-        //1. Tokenizar la EPOS de izq -> der
-        int posToken;
-        for (posToken = 0; posToken < postfija.length(); posToken++) {
-            char token = postfija.charAt(posToken);
-            if (esOperando(token + "")) {
-                // a) Si es operando, apilar
-                if (pila.poner(token + "") == false) {
-                    return null; //hubo error
-                }
-            } else {
-                //si no fue operando, es operador
-                //  b) Si es operador, se extraen dos operandos de la pila
-
-                String op2 = (String) pila.quitar();
-                String op1 = (String) pila.quitar();
-
-                Double numero1 = Double.parseDouble(op1);
-                Double numero2 = Double.parseDouble(op2);
-
-                //  b) Si es operador, se extraen dos operandos de la pila
-                //  (el primer operando es OP2), se calcula la operación con
-                //  ese token y se mete el resultado a la pila.
-                Double resultado = operacionAritmetica(token, numero1, numero2);
-                if (resultado == null) {
-                    // hay error
-                    return null;
-                }
-                pila.poner(resultado + "");
-            }
+        // Conservar las expresiones compactas de un dígito; aceptar tokens separados por espacios.
+        String[] tokens;
+        if (postfija.chars().anyMatch(Character::isWhitespace)) tokens = postfija.trim().split("\\s+");
+        else {
+            tokens = new String[postfija.length()];
+            for (int i = 0; i < postfija.length(); i++) tokens[i] = postfija.substring(i, i + 1);
         }
-
-        //2. El resultado es el único elemento en la pila
-        String cadenaResultado = (String) pila.quitar();
-        if (cadenaResultado == null) {
-            return null;
+        for (String token : tokens) {
+            try {
+                if (esOperando(token)) {
+                    double numero = Double.parseDouble(token);
+                    if (!Double.isFinite(numero) || !pila.poner(numero)) return null;
+                } else {
+                    if (token.length() != 1) return null;
+                    Object op2 = pila.quitar(), op1 = pila.quitar();
+                    if (!(op1 instanceof Number) || !(op2 instanceof Number)) return null;
+                    Double resultado = operacionAritmetica(token.charAt(0), ((Number) op1).doubleValue(), ((Number) op2).doubleValue());
+                    if (resultado == null || !Double.isFinite(resultado) || !pila.poner(resultado)) return null;
+                }
+            } catch (NumberFormatException e) { return null; }
         }
-        Double evaluacion = Double.parseDouble(cadenaResultado);
-        return evaluacion;
+        Object resultado = pila.quitar();
+        return resultado instanceof Double && pila.vacio() ? (Double) resultado : null;
     }
 
     public static Double operacionAritmetica(char operador, Double op1, Double op2) {

@@ -11,31 +11,22 @@ import java.io.*;
  * @author Usuario
  */
 public class Entrada {
+    private static InputStream entradaActual;
+    private static BufferedReader buffer;
     public static String terminalCadenas(){
-        InputStreamReader isr = new InputStreamReader(System.in);
-        BufferedReader buffer = new BufferedReader(isr);
-        String cadenaEntrada="";
-
-        try{
-            cadenaEntrada= buffer.readLine();
-        }catch(IOException e){
-            e.printStackTrace();
-        }finally{
-            return cadenaEntrada;
+        if (entradaActual != System.in) {
+            entradaActual = System.in;
+            buffer = new BufferedReader(new InputStreamReader(entradaActual, java.nio.charset.StandardCharsets.UTF_8));
         }
+        try { return buffer.readLine(); }
+        catch (IOException e) { throw new UncheckedIOException("No se pudo leer la entrada", e); }
     }
 
     public static Double terminalDouble(){
-        InputStreamReader isr = new InputStreamReader(System.in);
-        BufferedReader buffer = new BufferedReader(isr);
-        double entrada=0.0;
-
-        try{
-            entrada= Double.parseDouble(buffer.readLine());
-        }catch(IOException e){
-            e.printStackTrace();
-        }finally{
-            return entrada;
-        }
+        String cadenaEntrada = terminalCadenas();
+        if (cadenaEntrada == null) throw new IllegalArgumentException("No hay un número en la entrada");
+        double entrada = Double.parseDouble(cadenaEntrada);
+        if (!Double.isFinite(entrada)) throw new IllegalArgumentException("El número debe ser finito");
+        return entrada;
     }
 }

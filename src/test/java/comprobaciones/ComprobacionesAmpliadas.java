@@ -19,6 +19,7 @@ public class ComprobacionesAmpliadas {
         arreglos();
         ordenados();
         knn();
+        ComprobacionesAplicaciones.ejecutar();
         System.out.println("Extended checks passed: " + comprobaciones);
     }
 

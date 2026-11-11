@@ -34,15 +34,18 @@ public class Calculadora {
     public String convertirPostfija() {
         expresionPostfija = "";
         pilaOperadores.vaciar();
+        if (expresionInfija == null) throw new IllegalArgumentException("La expresión es obligatoria");
+        boolean esperaOperando = true;
 
         for (int posicionActual = 0; posicionActual < expresionInfija.length(); posicionActual++) {
             char caracterActual = expresionInfija.charAt(posicionActual);
 
-            if (caracterActual == ' ') {
+            if (Character.isWhitespace(caracterActual)) {
                 continue; // Ignorar espacios
             }
 
             if (esOperando(caracterActual)) {
+                if (!esperaOperando) throw new IllegalArgumentException("Falta un operador");
                 // Manejar operandos (números/variables)
                 StringBuilder operandoActual = new StringBuilder();
                 while (posicionActual < expresionInfija.length() &&
@@ -52,27 +55,39 @@ public class Calculadora {
                     posicionActual++;
                 }
                 posicionActual--; // Retroceder para no saltarse caracteres
+                if (!esNumero(operandoActual.toString())) throw new IllegalArgumentException("Operando inválido");
                 expresionPostfija += operandoActual.toString() + " ";
+                esperaOperando = false;
             } else if (caracterActual == '(') {
-                pilaOperadores.poner(caracterActual); // Apilar '('
+                if (!esperaOperando) throw new IllegalArgumentException("Falta un operador antes del paréntesis");
+                if (!pilaOperadores.poner(caracterActual)) throw new IllegalArgumentException("Capacidad de operadores excedida"); // Apilar '('
             } else if (caracterActual == ')') {
+                if (esperaOperando) throw new IllegalArgumentException("Falta un operando");
                 // Desapilar hasta encontrar '('
                 while (!pilaOperadores.vacio() && (char) pilaOperadores.verTope() != '(') {
                     expresionPostfija += pilaOperadores.quitar() + " ";
                 }
+                if (pilaOperadores.vacio()) throw new IllegalArgumentException("Paréntesis sin apertura");
                 pilaOperadores.quitar(); // Eliminar '(' sin enviar a EPOS
             } else if (esOperador(caracterActual)) {
+                if (esperaOperando) throw new IllegalArgumentException("Falta un operando; use operadores binarios");
                 // Desapilar operadores de mayor o igual precedencia
                 while (!pilaOperadores.vacio() &&
-                        precedencia((char) pilaOperadores.verTope()) >= precedencia(caracterActual)) {
+                        (precedencia((char) pilaOperadores.verTope()) > precedencia(caracterActual) ||
+                                (caracterActual != '^' && precedencia((char) pilaOperadores.verTope()) == precedencia(caracterActual)))) {
                     expresionPostfija += pilaOperadores.quitar() + " ";
                 }
-                pilaOperadores.poner(caracterActual); // Apilar operador actual
+                if (!pilaOperadores.poner(caracterActual)) throw new IllegalArgumentException("Capacidad de operadores excedida"); // Apilar operador actual
+                esperaOperando = true;
+            } else {
+                throw new IllegalArgumentException("Carácter no válido: " + caracterActual);
             }
         }
 
+        if (esperaOperando) throw new IllegalArgumentException("Expresión vacía o incompleta");
         // Desapilar operadores restantes
         while (!pilaOperadores.vacio()) {
+            if ((char) pilaOperadores.verTope() == '(') throw new IllegalArgumentException("Paréntesis sin cierre");
             expresionPostfija += pilaOperadores.quitar() + " ";
         }
 
@@ -87,16 +102,23 @@ public class Calculadora {
             if (tokenActual.isEmpty()) continue;
 
             if (esNumero(tokenActual)) {
-                pilaEvaluacion.poner(Double.parseDouble(tokenActual)); // Apilar operandos
+                if (!pilaEvaluacion.poner(Double.parseDouble(tokenActual))) throw new IllegalArgumentException("Capacidad de operandos excedida"); // Apilar operandos
             } else if (tokenActual.length() == 1 && esOperador(tokenActual.charAt(0))) {
-                double operandoDerecho = (double) pilaEvaluacion.quitar(); //op2
-                double operandoIzquierdo = (double) pilaEvaluacion.quitar(); //op1
+                Object derecho = pilaEvaluacion.quitar(); //op2
+                Object izquierdo = pilaEvaluacion.quitar(); //op1
+                if (!(derecho instanceof Number) || !(izquierdo instanceof Number)) throw new IllegalArgumentException("Faltan operandos");
+                double operandoDerecho = ((Number) derecho).doubleValue();
+                double operandoIzquierdo = ((Number) izquierdo).doubleValue();
                 double resultadoParcial = aplicarOperador(tokenActual.charAt(0), operandoIzquierdo, operandoDerecho);
-                pilaEvaluacion.poner(resultadoParcial); // Apilar resultado
+                if (!Double.isFinite(resultadoParcial) || !pilaEvaluacion.poner(resultadoParcial)) throw new IllegalArgumentException("Resultado fuera del rango numérico"); // Apilar resultado
+            } else {
+                throw new IllegalArgumentException("Token inválido: " + tokenActual);
             }
         }
 
-        return (double) pilaEvaluacion.quitar(); // Resultado final
+        Object resultado = pilaEvaluacion.quitar();
+        if (!(resultado instanceof Number) || !pilaEvaluacion.vacio()) throw new IllegalArgumentException("Expresión postfija inválida");
+        return ((Number) resultado).doubleValue(); // Resultado final
     }
 
     public void solicitarValoresVariables() {
@@ -134,8 +156,7 @@ public class Calculadora {
 
     protected boolean esNumero(String posibleNumero) {
         try {
-            Double.parseDouble(posibleNumero);
-            return true;
+            return Double.isFinite(Double.parseDouble(posibleNumero));
         } catch (NumberFormatException e) {
             return false;
         }
@@ -165,11 +186,16 @@ public class Calculadora {
             case '*':
                 return operandoIzquierdo * operandoDerecho;
             case '/':
+                if (operandoDerecho == 0) throw new IllegalArgumentException("División entre cero");
                 return operandoIzquierdo / operandoDerecho;
             case '^':
                 return Math.pow(operandoIzquierdo, operandoDerecho);
             default:
-                return 0;
+                throw new IllegalArgumentException("Operador inválido");
         }
+    }
+    public String convertirPostfija(String infija) {
+        expresionInfija = infija;
+        return convertirPostfija();
     }
 }
