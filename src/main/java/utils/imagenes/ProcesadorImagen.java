@@ -34,6 +34,7 @@ public class ProcesadorImagen {
 
     public ProcesadorImagen(String rutaImagen) throws IOException {
         BufferedImage imagen = ImageIO.read(new File(rutaImagen));
+        if (imagen == null) throw new IOException("Formato de imagen no reconocido");
         this.ancho = imagen.getWidth();
         this.alto = imagen.getHeight();
         this.matrizPixeles = new Arreglo2D(alto, ancho);
@@ -91,7 +92,7 @@ public class ProcesadorImagen {
 
                 // Ajustar cada componente de color (excepto alfa)
                 for (int componente = 1; componente < 4; componente++) {
-                    componentes[componente] = Math.max(0, Math.min(255, componentes[componente] + valor));
+                    componentes[componente] = (int) Math.max(0L, Math.min(255L, (long) componentes[componente] + valor));
                 }
 
                 int nuevoPixel = construirPixel(componentes[0], componentes[1],
@@ -176,11 +177,14 @@ public class ProcesadorImagen {
 
     // Método 1: Redimensionar por factor enumerado
     public void redimensionar(FactorEscala factor) {
+        if (factor == null) throw new IllegalArgumentException("El factor es obligatorio");
         redimensionar(factor.getValor());
     }
 
     // Método 2: Redimensionar por factor numérico (sobrecargado)
     public void redimensionar(double factor) {
+        if (!Double.isFinite(factor) || factor <= 0 || ancho * factor > Integer.MAX_VALUE || alto * factor > Integer.MAX_VALUE)
+            throw new IllegalArgumentException("El factor debe producir dimensiones positivas dentro del rango entero");
         int nuevoAncho = (int) Math.round(ancho * factor);
         int nuevoAlto = (int) Math.round(alto * factor);
         redimensionar(nuevoAncho, nuevoAlto);
@@ -197,8 +201,8 @@ public class ProcesadorImagen {
         for (int nuevaFila = 0; nuevaFila < nuevoAlto; nuevaFila++) {
             for (int nuevaColumna = 0; nuevaColumna < nuevoAncho; nuevaColumna++) {
                 // Mapear coordenadas a la imagen original con interpolación
-                double relacionY = (double) nuevaFila / (nuevoAlto - 1);
-                double relacionX = (double) nuevaColumna / (nuevoAncho - 1);
+                double relacionY = nuevoAlto == 1 ? 0 : (double) nuevaFila / (nuevoAlto - 1);
+                double relacionX = nuevoAncho == 1 ? 0 : (double) nuevaColumna / (nuevoAncho - 1);
 
                 int filaOriginal = (int) (relacionY * (alto - 1));
                 int columnaOriginal = (int) (relacionX * (ancho - 1));
@@ -220,6 +224,8 @@ public class ProcesadorImagen {
 
     // Añadir marco a la imagen
     public void agregarMarco(int grosor, int color) {
+        if (grosor < 0 || (long) ancho + 2L * grosor > Integer.MAX_VALUE || (long) alto + 2L * grosor > Integer.MAX_VALUE)
+            throw new IllegalArgumentException("El grosor debe ser no negativo y producir dimensiones válidas");
         Arreglo2D nuevaMatriz = new Arreglo2D(alto + 2 * grosor, ancho + 2 * grosor);
 
         // Rellenar todo con el color del marco

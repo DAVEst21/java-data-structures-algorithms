@@ -15,6 +15,11 @@ import registros.granja.*;
 import registros.casas.*;
 import registros.ventas.*;
 import utils.regresion.RegresionLineal;
+import utils.audio.AudioFileRecord;
+import utils.audio.wavfile.WavFile;
+import utils.imagenes.ProcesadorImagen;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
 class ComprobacionesAplicaciones {
     static void ejecutar() throws Exception {
@@ -22,6 +27,7 @@ class ComprobacionesAplicaciones {
         calculadora();
         registros();
         estadistica();
+        multimedia();
     }
 
     private static void entradaSalida() throws Exception {
@@ -115,6 +121,88 @@ class ComprobacionesAplicaciones {
 
     private static class GranjaPrueba extends GestorGranja {
         void agregar(Campesino campesino) { campesinos.poner(campesino); }
+    }
+
+    private static void multimedia() throws Exception {
+        Path carpeta = Files.createTempDirectory("media-regresion-");
+        Path mono = carpeta.resolve("mono.wav"), salida = carpeta.resolve("salida.wav");
+        Path stereo = carpeta.resolve("stereo.wav"), entradaImagen = carpeta.resolve("entrada.png"), salidaImagen = carpeta.resolve("salida.jpg");
+        try {
+            crearWav(mono, 1, new double[]{-0.5, 0, 0.25, 0.5});
+            AudioFileRecord audio = leerAudio(mono);
+            cerca(0.5625, audio.calcularEnergia(), 1e-4);
+            audio.acelerarAudio(2); igual(2, audio.getBuffer().cantidad());
+            audio.escribirAudio(salida.toString());
+            WavFile wav = WavFile.openWavFile(salida.toFile());
+            try { igual(2L, wav.getNumFrames()); igual(1, wav.getNumChannels()); } finally { wav.close(); }
+            audio = leerAudio(mono); audio.retrasarAudio(2); igual(8, audio.getBuffer().cantidad());
+            audio.escribirAudio(salida.toString());
+            wav = WavFile.openWavFile(salida.toFile());
+            try { igual(8L, wav.getNumFrames()); } finally { wav.close(); }
+            audio = leerAudio(mono); audio.eliminarSilencios(0.1); igual(3, audio.getBuffer().cantidad());
+            audio.eliminarSilencios(1); igual(0, audio.getBuffer().cantidad());
+            audio.preEnfasis(0.95); audio.escribirAudio(salida.toString());
+            wav = WavFile.openWavFile(salida.toFile());
+            try { igual(0L, wav.getNumFrames()); } finally { wav.close(); }
+            AudioFileRecord valido = leerAudio(mono);
+            rechaza(() -> valido.acelerarAudio(0)); rechaza(() -> valido.retrasarAudio(Double.NaN));
+            rechaza(() -> valido.bajarVolumen(0)); rechaza(() -> valido.eliminarSilencios(-1));
+            crearWav(stereo, 2, new double[]{0.25, -0.25, 0.5, -0.5, 0, 0});
+            audio = leerAudio(stereo); audio.invertirEjeX();
+            cerca(0, ((Number) audio.getBuffer().obtener(0)).doubleValue(), 1e-4);
+            cerca(0.25, ((Number) audio.getBuffer().obtener(4)).doubleValue(), 1e-4);
+            cerca(-0.25, ((Number) audio.getBuffer().obtener(5)).doubleValue(), 1e-4);
+            audio.eliminarSilencios(0.1); igual(4, audio.getBuffer().cantidad());
+            audio.escribirAudio(salida.toString());
+            wav = WavFile.openWavFile(salida.toFile());
+            try { igual(2L, wav.getNumFrames()); igual(2, wav.getNumChannels()); } finally { wav.close(); }
+
+            BufferedImage original = new BufferedImage(16, 24, BufferedImage.TYPE_INT_RGB);
+            for (int y = 0; y < 24; y++) for (int x = 0; x < 16; x++) {
+                int gris = 20 + (y / 8 * 2 + x / 8) * 30;
+                original.setRGB(x, y, 0xff000000 | gris << 16 | gris << 8 | gris);
+            }
+            ImageIO.write(original, "png", entradaImagen.toFile());
+            for (int operacion = 0; operacion < 7; operacion++) {
+                ProcesadorImagen imagen = new ProcesadorImagen(entradaImagen.toString());
+                int esperado;
+                switch (operacion) {
+                    case 0 -> { imagen.invertirHorizontal(); esperado = 50; }
+                    case 1 -> { imagen.invertirVertical(); esperado = 140; }
+                    case 2 -> { imagen.rotar90Grados(); esperado = 140; }
+                    case 3 -> { imagen.rotar180Grados(); esperado = 170; }
+                    case 4 -> { imagen.rotar270Grados(); esperado = 50; }
+                    case 5 -> { imagen.aplicarTranspuesta(); esperado = 20; }
+                    default -> { imagen.aplicarNegativo(); esperado = 235; }
+                }
+                imagen.guardarImagen(salidaImagen.toString());
+                BufferedImage resultado = ImageIO.read(salidaImagen.toFile());
+                cerca(esperado, resultado.getRGB(3, 3) & 255, 10); // Tolerancia a compresión JPEG.
+            }
+            ProcesadorImagen imagen = new ProcesadorImagen(entradaImagen.toString());
+            rechaza(() -> imagen.redimensionar(Double.NaN)); rechaza(() -> imagen.agregarMarco(-1, 0));
+            imagen.redimensionar(1, 1); imagen.guardarImagen(salidaImagen.toString());
+            igual(1, ImageIO.read(salidaImagen.toFile()).getWidth());
+            imagen.agregarMarco(1, 0xff000000); imagen.guardarImagen(salidaImagen.toString());
+            igual(3, ImageIO.read(salidaImagen.toFile()).getWidth());
+            imagen.ajustarBrillo(Integer.MAX_VALUE); imagen.guardarImagen(salidaImagen.toString());
+            cerca(255, ImageIO.read(salidaImagen.toFile()).getRGB(0, 0) & 255, 2);
+        } finally {
+            for (Path archivo : new Path[]{mono, salida, stereo, entradaImagen, salidaImagen}) Files.deleteIfExists(archivo);
+            Files.deleteIfExists(carpeta);
+        }
+        System.out.println("PASS WAV frame counts, stereo frames, empty audio and known image transforms");
+    }
+
+    private static AudioFileRecord leerAudio(Path archivo) throws Exception {
+        AudioFileRecord audio = new AudioFileRecord(archivo.toString());
+        capturar(audio::leerAudio);
+        return audio;
+    }
+
+    private static void crearWav(Path archivo, int canales, double[] muestras) throws Exception {
+        WavFile wav = WavFile.newWavFile(archivo.toFile(), canales, muestras.length / canales, 16, 8000);
+        try { wav.writeFrames(muestras, muestras.length / canales); } finally { wav.close(); }
     }
 
     private static void calculadora() {

@@ -10,6 +10,13 @@ package principales.utiles.audio;
  */
 public class PrincipalAudio {
     public static void main(String[] args) {
+        String origen = args.length > 0 ? args[0] : "src/main/java/resources/audios/audioDIBM.wav";
+        utils.audio.AudioFileRecord audio = new utils.audio.AudioFileRecord(origen);
+        audio.leerAudio();
+        System.out.println("Energía del audio: " + audio.calcularEnergia());
+        audio.invertirEjeX();
+        audio.escribirAudio(args.length > 1 ? args[1] : "target/audio_invertido.wav");
+
         // Ruta relativa del archivo de audio original
         //String archivoOriginal = "C:/Users/Usuario/Documents/NetBeansProjects/ed_4b_25/audioDIBM.wav";
 
