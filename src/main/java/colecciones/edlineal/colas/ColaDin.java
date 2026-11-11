@@ -37,7 +37,7 @@ public class ColaDin implements LoteDatos {
         // Quita el primer elemento de la lista (inicio de la cola)
         if (!cola.vacia()) {
             Object respaldo = cola.verInicio();
-            cola.quitar(cola.verInicio());
+            cola.quitar(0);
             return respaldo;
         }
         return null;

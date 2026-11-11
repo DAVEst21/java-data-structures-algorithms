@@ -295,7 +295,7 @@ public class Arreglo implements VectorFijo {
     //invierte el orden de los elementos del arreglo
     @Override
     public void invertir() {
-        for (int i = 0; i <= indiceSuperior / 2; i++) {
+        for (int i = 0; i < cantidad() / 2; i++) {
             Object temporal = datos[i];
             datos[i] = datos[indiceSuperior - i];
             datos[indiceSuperior - i] = temporal;
