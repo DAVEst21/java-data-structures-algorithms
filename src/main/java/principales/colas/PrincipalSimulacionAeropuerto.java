@@ -9,7 +9,7 @@ public class PrincipalSimulacionAeropuerto {
         SimulacionAeropuerto aeropuerto = new SimulacionAeropuerto(2);
 
         // Hora base para la simulación (ahora)
-        int horaBase = (int) System.currentTimeMillis();
+        long horaBase = System.currentTimeMillis();
 
         // Agregar algunos aviones con diferentes horas planificadas
         aeropuerto.agregarAvion(new Avion("Vuelo123", "Aeroméxico", "Nueva York",

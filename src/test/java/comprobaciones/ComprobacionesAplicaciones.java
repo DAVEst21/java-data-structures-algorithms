@@ -20,6 +20,7 @@ import utils.audio.wavfile.WavFile;
 import utils.imagenes.ProcesadorImagen;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import colecciones.edlineal.colas.colapriori.*;
 
 class ComprobacionesAplicaciones {
     static void ejecutar() throws Exception {
@@ -28,6 +29,7 @@ class ComprobacionesAplicaciones {
         registros();
         estadistica();
         multimedia();
+        aeropuerto();
     }
 
     private static void entradaSalida() throws Exception {
@@ -203,6 +205,26 @@ class ComprobacionesAplicaciones {
     private static void crearWav(Path archivo, int canales, double[] muestras) throws Exception {
         WavFile wav = WavFile.newWavFile(archivo.toFile(), canales, muestras.length / canales, 16, 8000);
         try { wav.writeFrames(muestras, muestras.length / canales); } finally { wav.close(); }
+    }
+
+    private static void aeropuerto() throws Exception {
+        long base = 1_700_000_000_000L;
+        Avion avion = new Avion("A", "línea", "lugar", base, base + 45 * 60_000L);
+        igual(base, avion.getHoraPlanificada()); igual(45, avion.calcularTiempoEspera());
+        avion.actualizarHora(base + 65 * 60_000L); igual(65, avion.calcularTiempoEspera());
+        rechaza(() -> new SimulacionAeropuerto(0));
+        SimulacionAeropuerto aeropuerto = new SimulacionAeropuerto(1);
+        long ahora = System.currentTimeMillis();
+        aeropuerto.agregarAvion(new Avion("Anterior", "línea", "lugar", ahora - 30 * 60_000L, ahora));
+        capturar(() -> aeropuerto.avanzarTiempo(20));
+        aeropuerto.agregarAvion(new Avion("Reciente", "línea", "lugar", ahora - 15 * 60_000L, ahora));
+        String salida = capturar(aeropuerto::procesarDespegues);
+        igual(true, salida.contains("Despegando: Anterior"));
+        igual(false, salida.contains("Despegando: Reciente"));
+        igual(true, capturar(aeropuerto::procesarDespegues).contains("Despegando: Reciente"));
+        igual(true, capturar(aeropuerto::procesarDespegues).contains("No hay aviones"));
+        rechaza(() -> aeropuerto.avanzarTiempo(-1));
+        System.out.println("PASS long simulation timestamps, refreshed priorities and runway limits");
     }
 
     private static void calculadora() {

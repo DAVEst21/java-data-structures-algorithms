@@ -4,11 +4,11 @@ public class Avion {
     private String identificador;
     private String aerolinea;
     private String destino;
-    private int horaPlanificada; // Hora planificada en milisegundos
-    private int horaActual;      // Hora actual de simulación en milisegundos
+    private long horaPlanificada; // Hora planificada en milisegundos
+    private long horaActual;      // Hora actual de simulación en milisegundos
 
     public Avion(String identificador, String aerolinea, String destino,
-                 int horaPlanificada, int horaActual) {
+                 long horaPlanificada, long horaActual) {
         this.identificador = identificador;
         this.aerolinea = aerolinea;
         this.destino = destino;
@@ -18,11 +18,11 @@ public class Avion {
 
     // Calcula el tiempo de espera en minutos
     public int calcularTiempoEspera() {
-        return (horaActual - horaPlanificada) / (60 * 1000);
+        return Math.toIntExact(Math.subtractExact(horaActual, horaPlanificada) / (60 * 1000));
     }
 
     // Actualiza la hora actual para el cálculo de prioridad
-    public void actualizarHora(int nuevaHora) {
+    public void actualizarHora(long nuevaHora) {
         this.horaActual = nuevaHora;
     }
 
@@ -45,7 +45,7 @@ public class Avion {
         return destino;
     }
 
-    public int getHoraPlanificada() {
+    public long getHoraPlanificada() {
         return horaPlanificada;
     }
 }
