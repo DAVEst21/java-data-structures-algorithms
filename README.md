@@ -1,8 +1,12 @@
 # Data Structures and Algorithms in Java
 
+[![Java 21](docs/badges/java-21.svg)](#requirements-and-existing-dependencies)
+[![JDK-only checks](docs/badges/jdk-only-checks.svg)](#build-and-verify)
+[![Verification](https://github.com/DAVEst21/java-data-structures-algorithms/actions/workflows/verification.yml/badge.svg?branch=main&event=push)](https://github.com/DAVEst21/java-data-structures-algorithms/actions/workflows/verification.yml)
+
 An educational Java project that builds data structures by hand and uses them in small applications. Arrays, linked nodes, stacks, queues, matrices, sorting, recursion, and numerical examples show how storage choices affect program behavior.
 
-Developed by **David Ignacio Becerra Morán** for the Data Structures course in the Software Engineering program at Universidad Autónoma de Zacatecas in 2025. The original project identifier is `ed_4b_25`; the suggested repository name is `java-data-structures-algorithms`. Original Spanish identifiers and comments are preserved.
+Developed by **David Ignacio Becerra Morán** for the Data Structures course in the Software Engineering program at Universidad Autónoma de Zacatecas in 2025. Original Spanish identifiers and comments are preserved.
 
 The custom structures and algorithms are academic implementations. Implementing them directly makes index management, links, traversal, capacity, recursion, and composition visible. This repository also retains third-party support code, identified below. The previously unfinished collection methods are now implemented. Verified behavior is separated from remaining mathematical and usage limitations.
 
@@ -48,6 +52,8 @@ Extended checks passed: 384
 ```
 
 The original fourteen groups and 384 additional assertions pass. These counts describe explicit checks, not a coverage measurement or a guarantee for all inputs. [Verification details](docs/VERIFICATION.md) distinguish source inspection, compilation, executed examples, checked behavior, and pending work.
+
+GitHub Actions runs the same verification script with JDK 21 on pushes and pull requests to `main`. The Verification badge reflects the latest push run on `main`; the workflow can also be run manually.
 
 To compile directly on Windows with PowerShell and JDK 21:
 
