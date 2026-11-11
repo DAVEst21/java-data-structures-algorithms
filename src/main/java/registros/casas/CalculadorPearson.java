@@ -5,6 +5,7 @@ import utils.entradasalida.cadenas.Salida;
 
 public class CalculadorPearson {
     public double calcular(ListaDin habitaciones, ListaDin precios) {
+        validarDatos(habitaciones, precios);
         if (habitaciones.vacia() || precios.vacia()) {
             return 0.0;
         }
@@ -71,6 +72,19 @@ public class CalculadorPearson {
             Salida.salidaPorDefecto("Fuerza: Asociación alta\n");
         } else {
             Salida.salidaPorDefecto("Fuerza: Asociación muy alta\n");
+        }
+    }
+    public static void validarDatos(ListaDin habitaciones, ListaDin precios) {
+        if (habitaciones == null || precios == null || habitaciones.cantidad() != precios.cantidad())
+            throw new IllegalArgumentException("Las listas deben tener la misma cantidad de valores");
+        habitaciones.iniciaIterador();
+        precios.iniciaIterador();
+        while (habitaciones.iteradorValido()) {
+            Object x = habitaciones.obtenerIterador(), y = precios.obtenerIterador();
+            if (!(x instanceof Number) || !(y instanceof Number) ||
+                    !Double.isFinite(((Number) x).doubleValue()) || !Double.isFinite(((Number) y).doubleValue()))
+                throw new IllegalArgumentException("Los datos deben ser números finitos");
+            habitaciones.moverIterador(); precios.moverIterador();
         }
     }
 }

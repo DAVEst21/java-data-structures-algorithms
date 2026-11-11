@@ -26,6 +26,7 @@ public class NotaVenta2{
 
     //No cambia nada
     public boolean agregarArticulo(Articulo articuloVendido, int cuantos){
+        if (articuloVendido == null || cuantos <= 0 || !Double.isFinite(articuloVendido.getPrecioUni()) || articuloVendido.getPrecioUni() < 0) return false;
         int resultadoInsercionA = articulosVenta.poner(articuloVendido);
         int resultadoInsercionC = cantidadArticulos.poner(cuantos);
 

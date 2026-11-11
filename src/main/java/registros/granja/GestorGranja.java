@@ -46,6 +46,7 @@ public class GestorGranja {
         while (true) {
             mostrarMenu();
             String opcion = Entrada.terminalCadenas();
+            if (opcion == null) return;
             switch (opcion) {
                 case "A":
                     imprimirPromedioAnual();
@@ -70,8 +71,7 @@ public class GestorGranja {
                     break;
                 case "X":
                     Salida.salidaPorDefecto("Saliendo del programa\n");
-                    System.exit(0);
-                    break;
+                    return;
                 default:
                     Salida.salidaPorDefecto("Opción no válida.\n");
             }
@@ -105,7 +105,8 @@ public class GestorGranja {
             Salida.salidaPorDefecto("Toneladas del último mes (diciembre) de " + campesinoTemp.nombre + ":\n");
 
             for (int j = 1; j <= 5; j++) {
-                double toneladas = (double) campesinoTemp.calcularToneladasUltimoMes();
+                Arreglo ultimosMeses = (Arreglo) campesinoTemp.calcularToneladasUltimoMes();
+                double toneladas = ((Number) ultimosMeses.obtener(j - 1)).doubleValue();
                 Salida.salidaPorDefecto("Año " + j + ": " + toneladas + " toneladas\n");
             }
         }
@@ -126,8 +127,9 @@ public class GestorGranja {
     }
     
     public void determinarPeorCampesinoPorAnio() {
+        if (campesinos.vacia()) { Salida.salidaPorDefecto("No hay campesinos registrados\n"); return; }
         for (int anio = 1; anio <= 5; anio++) {
-            double menorProduccion = 1000;
+            double menorProduccion = Double.POSITIVE_INFINITY;
             Campesino peorCampesino = null;
 
             for (int i = 0; i < campesinos.cantidad(); i++) {
@@ -145,6 +147,7 @@ public class GestorGranja {
     }
     
     public void determinarAnioConMayoresDividendos() {
+        if (campesinos.vacia()) { Salida.salidaPorDefecto("No hay campesinos registrados\n"); return; }
         double mayorProduccion = 0;
         int anioMayorProduccion = 0;
         for (int anio = 1; anio <= 5; anio++) {
@@ -153,7 +156,7 @@ public class GestorGranja {
                 Campesino campesinoTemp = (Campesino) campesinos.obtener(i);
                 produccionTotal = produccionTotal + (double) campesinoTemp.calcularPromedioToneladasAnio(anio) * 12;
             }
-            if (produccionTotal > mayorProduccion) {
+            if (anioMayorProduccion == 0 || produccionTotal > mayorProduccion) {
                 mayorProduccion = produccionTotal;
                 anioMayorProduccion = anio;
             }
@@ -162,6 +165,7 @@ public class GestorGranja {
     }
     
     public void determinarEpocaConMayorProduccion() {
+        if (campesinos.vacia()) { Salida.salidaPorDefecto("No hay campesinos registrados\n"); return; }
         String[] estaciones = {"Primavera", "Verano", "Otoño", "Invierno"};
         double[] produccionEstaciones = new double[4];
     

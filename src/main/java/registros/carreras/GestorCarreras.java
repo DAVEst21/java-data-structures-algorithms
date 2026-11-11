@@ -114,6 +114,7 @@ public class GestorCarreras {
     //Método que agrega kilómetros
     public boolean agregarKilometros(double km, int noCorredor,
                                      String nombreEvento, int anio){
+        if (!Double.isFinite(km) || km < 0) return false;
         //Me dan los datos de dónde se va a guardar
         //el kilometraje recorrido,
         //Necesito encontrar los índices de esos datos
@@ -160,6 +161,7 @@ public class GestorCarreras {
     */
     
     public Double kilometrosXCorredor(int noCorredor, Arreglo carrerasParticipantes, Arreglo aniosParticipantes) {
+        if (carrerasParticipantes == null || aniosParticipantes == null) return null;
         //Se tiene el cáluclo de un solo corredor
         //Se tiene que calcular de varias carreras
         Double kmCorredor = 0.0;
@@ -181,6 +183,7 @@ public class GestorCarreras {
     }
     
     public Double kilometrosXCorredorXCarrera(int noCorredor, String carreraParticipante, Arreglo aniosParticipantes) {
+        if (aniosParticipantes == null) return null;
         //Obtener los kms de un corredor de una sola carrera, pero de todos los anios
         Double kmAnio = 0.0;
         for (int cadaAnio = 0; cadaAnio < aniosParticipantes.cantidad(); cadaAnio++) {
@@ -189,8 +192,9 @@ public class GestorCarreras {
             int anioTemporal = (int) aniosParticipantes.obtener(cadaAnio);
             //Obtener los indices (los datos directos del cubo) de los 3 datos indirectos
             Arreglo indicesDirectos = buscarIndicesKms (noCorredor, carreraParticipante, anioTemporal);
+            if (indicesDirectos == null) return null;
             Double kmsCelda = 
-                    (Double) kilometrosRecorridos.obtenerCelda((int) indicesDirectos.obtener(0), (int) indicesDirectos.obtener(1), (int) indicesDirectos.obtener(2));
+                    (Double) kilometrosRecorridos.obtenerCelda((int) indicesDirectos.obtener(1), (int) indicesDirectos.obtener(0), (int) indicesDirectos.obtener(2));
             if (kmsCelda == null) {
                 return null;
             }

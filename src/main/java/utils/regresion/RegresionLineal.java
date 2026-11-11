@@ -14,6 +14,13 @@ public class RegresionLineal {
     // Entrena el modelo de regresión lineal usando descenso de gradiente.
     // Calcula los parámetros interseccion y pendiente para la ecuación y = p + b*x.
     public void entrenar(ArregloNumerico numHabitaciones, ArregloNumerico precios) {
+        if (numHabitaciones == null || precios == null || numHabitaciones.vacia() || numHabitaciones.cantidad() != precios.cantidad())
+            throw new IllegalArgumentException("El entrenamiento requiere pares de datos no vacíos");
+        for (int i = 0; i < numHabitaciones.cantidad(); i++) {
+            if (!Double.isFinite(((Number) numHabitaciones.obtener(i)).doubleValue()) ||
+                    !Double.isFinite(((Number) precios.obtener(i)).doubleValue()))
+                throw new IllegalArgumentException("Los datos deben ser finitos");
+        }
         // Obtener el número total de muestras
         int numMuestras = numHabitaciones.cantidad();
 
@@ -48,12 +55,15 @@ public class RegresionLineal {
             // Actualizar los parámetros simultáneamente
             interseccion = interseccion - TASA_APRENDIZAJE * derivadaInterseccion;
             pendiente = pendiente - TASA_APRENDIZAJE * derivadaPendiente;
+            if (!Double.isFinite(interseccion) || !Double.isFinite(pendiente))
+                throw new ArithmeticException("El descenso de gradiente diverge con estos datos");
         }
     }
 
     // Predice el precio de una casa según el número de habitaciones usando
     // la ecuación y = interseccion + pendiente * x.
     public double predecir(double numHabitaciones) {
+        if (!Double.isFinite(numHabitaciones)) throw new IllegalArgumentException("El valor debe ser finito");
         return interseccion + pendiente * numHabitaciones;
     }
 
@@ -75,6 +85,8 @@ public class RegresionLineal {
         Arreglo datosHabitaciones = ArchivoTextoD.leer(archivoHabitaciones);
         Arreglo datosPrecios = ArchivoTextoD.leer(archivoPrecios);
 
+        if (datosHabitaciones == null || datosPrecios == null || datosHabitaciones.vacia() || datosHabitaciones.cantidad() != datosPrecios.cantidad())
+            throw new IllegalArgumentException("Los archivos deben contener pares de datos no vacíos");
         // Crear arreglos numéricos para almacenar los valores
         ArregloNumerico numHabitaciones = new ArregloNumerico(datosHabitaciones.cantidad());
         ArregloNumerico precios = new ArregloNumerico(datosPrecios.cantidad());
@@ -83,6 +95,7 @@ public class RegresionLineal {
         for (int posicion = 0; posicion < datosHabitaciones.cantidad(); posicion++) {
             double valorHabitaciones = Double.parseDouble(datosHabitaciones.obtener(posicion).toString());
             double valorPrecios = Double.parseDouble(datosPrecios.obtener(posicion).toString());
+            if (!Double.isFinite(valorHabitaciones) || !Double.isFinite(valorPrecios)) throw new IllegalArgumentException("Los datos deben ser finitos");
             numHabitaciones.poner(valorHabitaciones);
             precios.poner(valorPrecios);
         }

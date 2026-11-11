@@ -16,7 +16,7 @@ public class GestorTienda2{
     }
 
     public boolean agregarVendedor(String RFC, String nombre, int numeroVendedor, String fechaNacimiento){
-        Vendedor vendedorTemp = new Vendedor(RFC, nombre, numeroVendedor, fechaNacimiento);
+        Vendedor vendedorTemp = new Vendedor(nombre, RFC, numeroVendedor, fechaNacimiento);
         int retorno = vendedores.poner(vendedorTemp);
         if(retorno < 0){
             return false;

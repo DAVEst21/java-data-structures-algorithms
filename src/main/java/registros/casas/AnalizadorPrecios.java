@@ -8,6 +8,7 @@ public class AnalizadorPrecios {
     private static final int MAX_HABITACIONES = 13;
 
     public void calcularPromedioPorHabitaciones(ListaDin habitaciones, ListaDin precios) {
+        CalculadorPearson.validarDatos(habitaciones, precios);
         // Crear una ListaDin para cada número de habitaciones
         ListaDin[] listasPrecios = new ListaDin[MAX_HABITACIONES - MIN_HABITACIONES + 1];
         for (int i = 0; i < listasPrecios.length; i++) {
@@ -39,6 +40,7 @@ public class AnalizadorPrecios {
     }
 
     public void calcularMinMaxPorHabitaciones(ListaDin habitaciones, ListaDin precios) {
+        CalculadorPearson.validarDatos(habitaciones, precios);
         // Crear una ListaDin para cada número de habitaciones
         ListaDin[] listasPrecios = new ListaDin[MAX_HABITACIONES - MIN_HABITACIONES + 1];
         for (int i = 0; i < listasPrecios.length; i++) {
@@ -78,6 +80,7 @@ public class AnalizadorPrecios {
     }
 
     public double calcularPearsonMuestral(ListaDin habitaciones, ListaDin precios) {
+        CalculadorPearson.validarDatos(habitaciones, precios);
         if (habitaciones.vacia() || precios.vacia()) return 0.0;
 
         double mediaHabitaciones = ((Number) habitaciones.promedio()).doubleValue();
@@ -105,6 +108,7 @@ public class AnalizadorPrecios {
     }
 
     public double calcularPearsonPoblacional(ListaDin habitaciones, ListaDin precios) {
+        CalculadorPearson.validarDatos(habitaciones, precios);
         if (habitaciones.vacia() || precios.vacia()) return 0.0;
 
         double mediaHabitaciones = ((Number) habitaciones.promedio()).doubleValue();
@@ -139,10 +143,10 @@ public class AnalizadorPrecios {
         Salida.salidaPorDefecto("El coeficiente muestral (r) asume que los datos son una muestra, dividiendo por n-1 para la covarianza.\n");
         Salida.salidaPorDefecto("El coeficiente poblacional (ρ) asume que los datos son la población total, dividiendo por n.\n");
         if (Math.abs(coeficienteMuestral - coeficientePoblacional) < 0.01) {
-            Salida.salidaPorDefecto("Los valores son muy similares (" + coeficienteMuestral + " vs " + coeficientePoblacional + "), indicando un tamaño de muestra grande donde n ≈ n-1.\n");
+            Salida.salidaPorDefecto("Los valores son muy similares (" + coeficienteMuestral + " vs " + coeficientePoblacional + "), porque los factores de normalización se cancelan en el cociente de Pearson.\n");
         } else {
-            Salida.salidaPorDefecto("Los valores difieren (" + coeficienteMuestral + " vs " + coeficientePoblacional + "), reflejando la suposición de muestra vs. población.\n");
+            Salida.salidaPorDefecto("Los valores difieren (" + coeficienteMuestral + " vs " + coeficientePoblacional + "), revise los datos y la precisión numérica; la normalización consistente debe cancelarse.\n");
         }
-        Salida.salidaPorDefecto("Conclusión: La elección de muestra vs. población afecta ligeramente el coeficiente, pero ambos indican una fuerza de correlación similar.\n");
+        Salida.salidaPorDefecto("Conclusión: Para los mismos pares, ambas normalizaciones producen el mismo coeficiente salvo redondeo.\n");
     }
 }
