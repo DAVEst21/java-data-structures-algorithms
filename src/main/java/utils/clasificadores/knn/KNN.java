@@ -12,6 +12,8 @@ public class KNN {
 
     // Constructor que inicializa el clasificador K-NN.
     public KNN(ConjuntoDatos conjunto, int k) {
+        if (conjunto == null || k < 1 || k > conjunto.obtenerCantidadDatos())
+            throw new IllegalArgumentException("K debe estar entre 1 y la cantidad de datos cargados");
         conjuntoDatos = conjunto;
         valorK = k;
         pesos = conjuntoDatos.calcularPesos(); // Calcula los pesos al iniciar
@@ -32,12 +34,14 @@ public class KNN {
 
     // Clasifica un nuevo dato usando K-NN con pesado de variables.
     public String clasificar(Dato nuevoDato) {
-        ArregloOrdenado distancias = new ArregloOrdenado(conjuntoDatos.obtenerDatosNumericos().obtenerRenglones(),
+        if (nuevoDato == null || nuevoDato.obtenerNumCaracteristicas() != conjuntoDatos.obtenerDatosNumericos().obtenerColumnas())
+            throw new IllegalArgumentException("El dato debe tener las mismas características que el conjunto");
+        ArregloOrdenado distancias = new ArregloOrdenado(conjuntoDatos.obtenerCantidadDatos(),
                 ArregloOrdenado.TipoOrdenamiento.INC);
         Arreglo clases = conjuntoDatos.obtenerClases();
 
         // Calcular distancias a todos los datos de entrenamiento
-        for (int fila = 0; fila < conjuntoDatos.obtenerDatosNumericos().obtenerRenglones(); fila++) {
+        for (int fila = 0; fila < conjuntoDatos.obtenerCantidadDatos(); fila++) {
             Dato datoEntrenamiento = new Dato(nuevoDato.obtenerNumCaracteristicas());
             for (int col = 0; col < nuevoDato.obtenerNumCaracteristicas(); col++) {
                 datoEntrenamiento.establecerValor(col,
@@ -45,7 +49,8 @@ public class KNN {
             }
             datoEntrenamiento.establecerClase((String) clases.obtener(fila));
             double distancia = calcularDistanciaPonderada(nuevoDato, datoEntrenamiento);
-            distancias.poner(new ParDistanciaClase(distancia, datoEntrenamiento.obtenerClase()));
+            if (!Double.isFinite(distancia)) throw new IllegalArgumentException("La distancia excede el rango numérico");
+            distancias.poner(new ParDistanciaClase(distancia, datoEntrenamiento.obtenerClase(), fila));
         }
 
         // Encontrar la clase más frecuente entre los K vecinos
@@ -58,18 +63,13 @@ public class KNN {
         // Contar frecuencias y elegir la clase más común
         String claseGanadora = "";
         int maxFrecuencia = 0;
-        for (int i = 0; i < conjuntoDatos.obtenerClasesUnicas().cantidad(); i++) {
-            String clase = (String) conjuntoDatos.obtenerClasesUnicas().obtener(i);
+        for (int i = 0; i < clasesVecinos.cantidad(); i++) {
+            String clase = (String) clasesVecinos.obtener(i);
             int frecuencia = clasesVecinos.contar(clase);
+            // En caso de empate, usar la clase del vecino más cercano entre las empatadas.
             if (frecuencia > maxFrecuencia) {
                 maxFrecuencia = frecuencia;
                 claseGanadora = clase;
-            } else if (frecuencia == maxFrecuencia && distancias.cantidad() > 0) {
-                // En caso de empate, usar la clase del vecino más cercano
-                ParDistanciaClase primerVecino = (ParDistanciaClase) distancias.obtener(0);
-                if (primerVecino.obtenerClase().equals(clase)) {
-                    claseGanadora = clase;
-                }
             }
         }
         return claseGanadora;
@@ -78,14 +78,20 @@ public class KNN {
 
 // Clase auxiliar para almacenar una distancia y su clase asociada.
 // Usada para ordenar distancias en el algoritmo K-NN.
-class ParDistanciaClase {
+class ParDistanciaClase implements Comparable<ParDistanciaClase> {
     private double distancia; // Distancia calculada entre dos datos
     private String clase; // Clase asociada al dato
+    private int indice; // Desempate estable: conservar cada fila, incluso con igual distancia.
 
     // Constructor que inicializa la distancia y la clase.
     public ParDistanciaClase(double distancia, String clase) {
+        this(distancia, clase, 0);
+    }
+
+    public ParDistanciaClase(double distancia, String clase, int indice) {
         this.distancia = distancia;
         this.clase = clase;
+        this.indice = indice;
     }
 
     // Obtiene la distancia.
@@ -102,5 +108,10 @@ class ParDistanciaClase {
     @Override
     public String toString() {
         return distancia + "," + clase;
+    }
+    @Override
+    public int compareTo(ParDistanciaClase otro) {
+        int comparacion = Double.compare(distancia, otro.distancia);
+        return comparacion != 0 ? comparacion : Integer.compare(indice, otro.indice);
     }
 }

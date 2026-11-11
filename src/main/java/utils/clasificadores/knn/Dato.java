@@ -10,6 +10,7 @@ public class Dato {
 
     // Constructor que inicializa el arreglo de valores predictoras con un tamaño dado.
     public Dato(int numCaracteristicas) {
+        if (numCaracteristicas <= 0) throw new IllegalArgumentException("Debe haber al menos una característica");
         valoresPredictoras = new Arreglo(numCaracteristicas);
         clase = ""; // Inicializa la clase como vacía
         // Inicializar el arreglo con ceros para evitar valores nulos
@@ -20,7 +21,7 @@ public class Dato {
 
     // Establece el valor de una característica en la posición indicada.
     public boolean establecerValor(int indice, double valor) {
-        return valoresPredictoras.modificar(indice, valor);
+        return Double.isFinite(valor) && valoresPredictoras.modificar(indice, valor);
     }
 
     // Obtiene el valor de una característica en la posición indicada.

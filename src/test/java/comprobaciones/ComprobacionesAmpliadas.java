@@ -7,6 +7,8 @@ import colecciones.edlineal.pilas.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.nio.file.*;
+import utils.clasificadores.knn.*;
 
 /** Regresiones para los módulos completados después de la revisión inicial. */
 public class ComprobacionesAmpliadas {
@@ -16,6 +18,7 @@ public class ComprobacionesAmpliadas {
         lineales();
         arreglos();
         ordenados();
+        knn();
         System.out.println("Extended checks passed: " + comprobaciones);
     }
 
@@ -156,6 +159,50 @@ public class ComprobacionesAmpliadas {
             double actual = ((Number) a.obtener(i)).doubleValue();
             igual(true, asc ? anterior < actual : anterior > actual);
         }
+    }
+
+    private static void knn() throws Exception {
+        Path archivo = Files.createTempFile("knn-regresion-", ".txt");
+        try {
+            ConjuntoDatos conjunto = new ConjuntoDatos(10, 1);
+            Files.writeString(archivo, "2,A\n10,B\n");
+            igual(true, conjunto.leerDatos(archivo.toString()));
+            igual(2, conjunto.obtenerCantidadDatos());
+            Dato consulta = new Dato(1); consulta.establecerValor(0, 0);
+            igual("A", new KNN(conjunto, 1).clasificar(consulta));
+            igual(false, consulta.establecerValor(0, Double.NaN));
+            rechaza(() -> new KNN(conjunto, 0)); rechaza(() -> new KNN(conjunto, 3));
+            rechaza(() -> new KNN(conjunto, 1).clasificar(new Dato(2)));
+            Files.writeString(archivo, "1,A\n-1,B\n-1,B\n");
+            igual(true, conjunto.leerDatos(archivo.toString()));
+            igual("B", new KNN(conjunto, 3).clasificar(consulta));
+            igual("A", new KNN(conjunto, 1).clasificar(consulta));
+            Files.writeString(archivo, "0,A\n1,C\n2,B\n3,B\n4,C\n");
+            igual(true, conjunto.leerDatos(archivo.toString()));
+            igual("C", new KNN(conjunto, 5).clasificar(consulta));
+            Files.writeString(archivo, "NaN,A\n");
+            igual(false, conjunto.leerDatos(archivo.toString())); igual(5, conjunto.obtenerCantidadDatos());
+            Files.writeString(archivo, "1,\n"); igual(false, conjunto.leerDatos(archivo.toString()));
+            Files.writeString(archivo, ""); igual(false, conjunto.leerDatos(archivo.toString()));
+            ConjuntoDatos ponderado = new ConjuntoDatos(10, 2);
+            Files.writeString(archivo, "0.2,10,A\n0.4,10,A\n1.2,10,B\n1.4,10,B\n");
+            igual(true, ponderado.leerDatos(archivo.toString()));
+            cerca(1, ((Number) ponderado.calcularPesos().obtener(0)).doubleValue(), 1e-12);
+            cerca(0, ((Number) ponderado.calcularPesos().obtener(1)).doubleValue(), 1e-12);
+            Files.writeString(archivo, "0,0,A\n0,0,A\n");
+            igual(true, ponderado.leerDatos(archivo.toString()));
+            cerca(0.5, ((Number) ponderado.calcularPesos().obtener(0)).doubleValue(), 1e-12);
+            cerca(0.5, ((Number) ponderado.calcularPesos().obtener(1)).doubleValue(), 1e-12);
+            igual(false, new ConjuntoDatos(1, 2).leerDatos(archivo.toString()));
+            igual(false, ponderado.leerDatos(archivo + ".missing"));
+        } finally { Files.deleteIfExists(archivo); }
+        System.out.println("PASS numeric KNN distances, discretization, ties and input validation");
+    }
+
+    static void rechaza(Runnable accion) {
+        comprobaciones++;
+        try { accion.run(); } catch (IllegalArgumentException e) { return; }
+        throw new AssertionError("Se esperaba IllegalArgumentException");
     }
 
     static Arreglo arreglo(Object... valores) {

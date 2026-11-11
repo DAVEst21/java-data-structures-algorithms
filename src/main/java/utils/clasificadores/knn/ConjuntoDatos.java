@@ -14,6 +14,8 @@ public class ConjuntoDatos {
 
     // Constructor que inicializa la matriz de datos y los arreglos de clases
     public ConjuntoDatos(int numFilas, int numCaracteristicas) {
+        if (numFilas <= 0 || numCaracteristicas <= 0)
+            throw new IllegalArgumentException("Las dimensiones del conjunto deben ser positivas");
         this.numCaracteristicas = numCaracteristicas;
         datosNumericos = new Arreglo2DNumerico(numFilas, numCaracteristicas);
         clases = new Arreglo(numFilas);
@@ -22,34 +24,34 @@ public class ConjuntoDatos {
 
     // Lee los datos de entrenamiento de un archivo .txt
     public boolean leerDatos(String nombreArchivo) {
+        if (nombreArchivo == null || !new java.io.File(nombreArchivo).isFile()) return false;
         Arreglo lineas = ArchivoTextoD.leer(nombreArchivo);
-        if (lineas == null || lineas.vacia()) {
-            return false; // Falso si el archivo no existe o está vacío
-        }
-
+        if (lineas == null || lineas.vacia() || lineas.cantidad() > datosNumericos.obtenerRenglones()) return false;
+        Arreglo2DNumerico nuevosDatos = new Arreglo2DNumerico(datosNumericos.obtenerRenglones(), numCaracteristicas);
+        Arreglo nuevasClases = new Arreglo(lineas.cantidad());
+        Arreglo nuevasClasesUnicas = new Arreglo(lineas.cantidad());
         for (int fila = 0; fila < lineas.cantidad(); fila++) {
-            String linea = (String) lineas.obtener(fila);
-            String[] partes = linea.split(",");
-            if (partes.length != numCaracteristicas + 1) {
-                return false; // Falso si la línea no tiene el formato correcto
-            }
-
-            // Llenar variables predictoras en la matriz
+            String[] partes = lineas.obtener(fila).toString().split(",", -1);
+            if (partes.length != numCaracteristicas + 1 || partes[numCaracteristicas].isBlank()) return false;
+            // Llenar variables predictoras en la matriz.
             for (int col = 0; col < numCaracteristicas; col++) {
                 try {
                     double valor = Double.parseDouble(partes[col]);
-                    datosNumericos.cambiar(fila, col, valor);
-                } catch (NumberFormatException e) {
-                    return false; // Falso si un valor no es numérico
-                }
+                    if (!Double.isFinite(valor)) return false;
+                    nuevosDatos.cambiar(fila, col, valor);
+                } catch (NumberFormatException e) { return false; }
             }
-            // Guardar la clase de la fila
-            clases.poner(partes[numCaracteristicas]);
-            // Agregar clase a clasesUnicas si no existe
-            if ((int) clasesUnicas.buscar(partes[numCaracteristicas]) < 0) {
-                clasesUnicas.poner(partes[numCaracteristicas]);
-            }
+            // Guardar la clase de la fila; usar la misma igualdad que Arreglo.contar.
+            String clase = partes[numCaracteristicas].trim();
+            int existente = (int) nuevasClasesUnicas.buscar(clase);
+            if (existente >= 0) clase = (String) nuevasClasesUnicas.obtener(existente);
+            else nuevasClasesUnicas.poner(clase);
+            nuevasClases.poner(clase);
         }
+        // Una carga inválida no destruye el conjunto anterior.
+        datosNumericos = nuevosDatos;
+        clases = nuevasClases;
+        clasesUnicas = nuevasClasesUnicas;
         return true;
     }
 
@@ -58,7 +60,7 @@ public class ConjuntoDatos {
     private double calcularInformacionMutua(int columna) {
         Arreglo valoresDiscretos = discretizarColumna(columna);
         double informacionMutua = 0.0;
-        int totalDatos = datosNumericos.obtenerRenglones();
+        int totalDatos = obtenerCantidadDatos();
 
         // Calcular probabilidades p_C(c) para cada clase
         Arreglo probabilidadesClase = new Arreglo(clasesUnicas.cantidad());
@@ -92,8 +94,8 @@ public class ConjuntoDatos {
     // Discretiza los valores de una columna para facilitar el cálculo de probabilidades.
     // Usa redondeo para convertir valores continuos a discretos.
     private Arreglo discretizarColumna(int columna) {
-        Arreglo valores = new Arreglo(datosNumericos.obtenerRenglones());
-        for (int fila = 0; fila < datosNumericos.obtenerRenglones(); fila++) {
+        Arreglo valores = new Arreglo(obtenerCantidadDatos());
+        for (int fila = 0; fila < obtenerCantidadDatos(); fila++) {
             double valor = ((Number) datosNumericos.obtener(fila, columna)).doubleValue();
             double discretizado = Math.round(valor); // Redondea para discretizar
             if ((int) valores.buscar(discretizado) < 0) {
@@ -106,8 +108,8 @@ public class ConjuntoDatos {
     // Cuenta las ocurrencias de un valor en una columna.
     private int contarValorEnColumna(int columna, double valor) {
         int conteo = 0;
-        for (int fila = 0; fila < datosNumericos.obtenerRenglones(); fila++) {
-            double valorActual = ((Number) datosNumericos.obtener(fila, columna)).doubleValue();
+        for (int fila = 0; fila < obtenerCantidadDatos(); fila++) {
+            double valorActual = Math.round(((Number) datosNumericos.obtener(fila, columna)).doubleValue());
             if (Math.abs(valorActual - valor) < 0.001) {
                 conteo++; // Incrementa si los valores son casi iguales
             }
@@ -118,8 +120,8 @@ public class ConjuntoDatos {
     // Cuenta las ocurrencias conjuntas de un valor y una clase.
     private int contarValorYClase(int columna, double valor, String clase) {
         int conteo = 0;
-        for (int fila = 0; fila < datosNumericos.obtenerRenglones(); fila++) {
-            double valorActual = ((Number) datosNumericos.obtener(fila, columna)).doubleValue();
+        for (int fila = 0; fila < obtenerCantidadDatos(); fila++) {
+            double valorActual = Math.round(((Number) datosNumericos.obtener(fila, columna)).doubleValue());
             String claseActual = (String) clases.obtener(fila);
             if (Math.abs(valorActual - valor) < 0.001 && claseActual.equals(clase)) {
                 conteo++; // Incrementa si coinciden valor y clase
@@ -131,6 +133,7 @@ public class ConjuntoDatos {
     // Calcula los pesos w_i para cada variable predictora, proporcionales a la información mutua.
     // Los normaliza para que sumen 1.
     public Arreglo calcularPesos() {
+        if (obtenerCantidadDatos() == 0) throw new IllegalStateException("Primero debe cargar datos");
         Arreglo pesos = new Arreglo(numCaracteristicas);
         double sumaInformacion = 0.0;
 
@@ -148,6 +151,10 @@ public class ConjuntoDatos {
                 pesos.modificar(col, infoMutua / sumaInformacion);
             }
         }
+        else {
+            // Sin información discriminante, todas las variables tienen el mismo peso.
+            for (int col = 0; col < numCaracteristicas; col++) pesos.modificar(col, 1.0 / numCaracteristicas);
+        }
         return pesos;
     }
 
@@ -164,5 +171,8 @@ public class ConjuntoDatos {
     // Obtiene el arreglo de clases únicas.
     public Arreglo obtenerClasesUnicas() {
         return clasesUnicas;
+    }
+    public int obtenerCantidadDatos() {
+        return clases.cantidad();
     }
 }
