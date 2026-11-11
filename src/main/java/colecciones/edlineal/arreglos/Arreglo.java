@@ -21,6 +21,7 @@ public class Arreglo implements VectorFijo {
     protected int capacidad;
     protected Object datos[];
     protected int indiceSuperior;
+    protected int indiceIterador = -1;
     
     //Constructor que inicializa el arreglo con un tamaño dado
     public Arreglo (int tamanio) {
@@ -77,7 +78,7 @@ public class Arreglo implements VectorFijo {
     @Override
     public Object buscar(Object valor) {
         int recorredor = 0;
-        while (recorredor <= indiceSuperior && valor.toString().equalsIgnoreCase(datos[recorredor].toString()) == false) {
+        while (recorredor <= indiceSuperior && !iguales(valor, datos[recorredor])) {
             recorredor ++;
         }
         if (recorredor > indiceSuperior) {
@@ -138,12 +139,12 @@ public class Arreglo implements VectorFijo {
 
     @Override
     public boolean cambiar(Object valorViejo, Object valorNuevo, int numVeces) {
-        return false;
+        return modificar(valorViejo, valorNuevo, numVeces);
     }
 
     @Override
     public boolean cambiar(int indice, Object valor) {
-        return false;
+        return modificar(indice, valor);
     }
 
     //devuelve la capacidad del arreglo
@@ -199,8 +200,8 @@ public class Arreglo implements VectorFijo {
             if (capacidad != arregloLista2.capacidad || indiceSuperior != arregloLista2.indiceSuperior) {
                 return false;
             }
-            for (int i = 0; i < datos.length; i++) {
-                if (datos[i] != arregloLista2.getDatos()[i]) {
+            for (int i = 0; i < cantidad(); i++) {
+                if (!iguales(datos[i], arregloLista2.getDatos()[i])) {
                     return false;
                 }
             }
@@ -218,10 +219,11 @@ public class Arreglo implements VectorFijo {
         boolean modificado = false;
         int contador = 0;
         for (int i = 0; i <= indiceSuperior && contador < numVeces; i++) {
-            if (datos[i].toString().equalsIgnoreCase(valorViejo.toString())) {
-                datos[i] = valorNuevo;
-                modificado = true;
-                contador++;
+            if (iguales(datos[i], valorViejo)) {
+                if (modificar(i, valorNuevo)) {
+                    modificado = true;
+                    contador++;
+                }
             }
         }
         return modificado;
@@ -233,7 +235,7 @@ public class Arreglo implements VectorFijo {
     public Arreglo buscarValores(Object valor) {
         Arreglo posiciones = new Arreglo(capacidad);
         for (int i = 0; i <= indiceSuperior; i++) {
-            if (datos[i].toString().equalsIgnoreCase(valor.toString())) {
+            if (iguales(datos[i], valor)) {
                 posiciones.poner(i);
             }
         }
@@ -242,45 +244,74 @@ public class Arreglo implements VectorFijo {
 
     @Override
     public boolean agregarMatriz2D(Arreglo2D tabla, ListaDin.TipoTabla enumTipoTabla) {
-        return false;
+        if (tabla == null || enumTipoTabla == null) return false;
+        if ((long) tabla.obtenerRenglones() * tabla.obtenerColumnas() > capacidad - cantidad()) return false;
+        if (enumTipoTabla == ListaDin.TipoTabla.RENGLON) {
+            for (int i = 0; i < tabla.obtenerRenglones(); i++) {
+                for (int j = 0; j < tabla.obtenerColumnas(); j++) if (poner(tabla.obtener(i, j)) < 0) return false;
+            }
+        } else {
+            for (int j = 0; j < tabla.obtenerColumnas(); j++) {
+                for (int i = 0; i < tabla.obtenerRenglones(); i++) if (poner(tabla.obtener(i, j)) < 0) return false;
+            }
+        }
+        return true;
     }
 
     //Este método vacía el arreglo
     @Override
     public void vaciar() {
         indiceSuperior = -1;
+        indiceIterador = -1;
     }
 
     @Override
     public void mostrarOI() {
-
+        imprimirDes();
     }
 
     @Override
     public ListaDin encontrarLista(Object valor) {
-        return null;
+        ListaDin resultado = new ListaDin();
+        for (int i = 0; i < cantidad(); i++) if (iguales(valor, datos[i])) resultado.poner(datos[i]);
+        return resultado;
     }
 
     @Override
     public Arreglo aListaEstatica() {
-        return null;
+        Arreglo copia = new Arreglo(cantidad());
+        for (int i = 0; i < cantidad(); i++) copia.poner(datos[i]);
+        return copia;
     }
 
     @Override
     public Arreglo aListaEstatica(Arreglo elementosADescartar) {
-        return null;
+        if (elementosADescartar == null) return null;
+        Arreglo copia = new Arreglo(cantidad());
+        for (int i = 0; i < cantidad(); i++) {
+            if ((int) elementosADescartar.buscar(datos[i]) < 0) copia.poner(datos[i]);
+        }
+        return copia;
     }
 
     @Override
     public Arreglo2D aMatriz2D(int filas, int columnas) {
-        return null;
+        if (filas < 0 || columnas < 0) return null;
+        Arreglo2D matriz = new Arreglo2D(filas, columnas);
+        int indice = 0;
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                if (indice < cantidad()) matriz.cambiar(i, j, datos[indice++]);
+            }
+        }
+        return matriz;
     }
 
     //Este método agrega los elementos de otra lista al final del arreglo actual
     @Override
     public boolean agregarLista(ListaDatos lista2) {
         if (lista2 instanceof Arreglo) {
-            Arreglo arregloLista2 = (Arreglo) lista2;
+            Arreglo arregloLista2 = ((Arreglo) lista2).aListaEstatica();
             for (int i = 0; i < arregloLista2.cantidad(); i++) {
                 if (lleno()) {
                     return false;
@@ -307,7 +338,7 @@ public class Arreglo implements VectorFijo {
     public int contar(Object valor) {
         int contador = 0;
         for (int i = 0; i <= indiceSuperior; i++) {
-            if (datos[i].toString().equalsIgnoreCase(valor.toString())) {
+            if (iguales(datos[i], valor)) {
                 contador++;
             }
         }
@@ -318,7 +349,7 @@ public class Arreglo implements VectorFijo {
     @Override
     public boolean borrarLista(ListaDatos lista2) {
         if (lista2 instanceof Arreglo) {
-            Arreglo arregloLista2 = (Arreglo) lista2;
+            Arreglo arregloLista2 = ((Arreglo) lista2).aListaEstatica();
             for (int i = 0; i < arregloLista2.cantidad(); i++) {
                 quitar(arregloLista2.obtener(i));
             }
@@ -330,11 +361,10 @@ public class Arreglo implements VectorFijo {
     // Rellena el arreglo con un valor dado hasta la cantidad indicada
     @Override
     public void rellenar(Object valor, int cantidad) {
-        for (int i = 0; i < cantidad && i < capacidad; i++) {
-            datos[i] = valor;
-        }
-        if (cantidad > indiceSuperior + 1) {
-            indiceSuperior = cantidad - 1;
+        int limite = Math.min(Math.max(cantidad, 0), capacidad);
+        for (int i = 0; i < limite; i++) {
+            if (i <= indiceSuperior) modificar(i, valor);
+            else if (poner(valor) < 0) break;
         }
     }
 
@@ -393,7 +423,7 @@ public class Arreglo implements VectorFijo {
                 if (!validaPosicion(indice)) {
                     return false;
                 }
-                datos[indice] = valoresNuevos.obtener(i);
+                if (!modificar(indice, valoresNuevos.obtener(i))) return false;
             }
             return true;
         }
@@ -441,73 +471,83 @@ public class Arreglo implements VectorFijo {
     //del arreglo en caso de ser números
     @Override
     public Object promedio () {
-        int i = 0;
-        if (datos[i] instanceof Number) {
-            double acum = 0;
-            for (i = 0; i <= indiceSuperior; i++) {
-                acum = acum + (double) datos [i];
-            }
-            double promedio = acum / cantidad();
-            return promedio;
-        }
-        return null; //No es número
+        Object total = suma();
+        return total == null ? null : ((Number) total).doubleValue() / cantidad();
     }
     
     //este método devuelve el mayor valor
     //del arreglo en caso de ser números
     @Override
     public Object encontrarMayor () {
-        int i = 0;
-        if (datos[i] instanceof Number) {
-            double mochila = 0;
-            for (i = 0; i <= indiceSuperior; i++) {
-                if (mochila < (double)datos[i]) {
-                    mochila = (double) datos[i];
-                }
-            }
-            return mochila;
+        if (vacia() || !(datos[0] instanceof Number)) return null;
+        double mochila = ((Number) datos[0]).doubleValue();
+        for (int i = 1; i < cantidad(); i++) {
+            if (!(datos[i] instanceof Number)) return null;
+            if (mochila < ((Number) datos[i]).doubleValue()) mochila = ((Number) datos[i]).doubleValue();
         }
-        return null; //No es número
+        return mochila;
     }
     
     //este método devuelve la suma
     //del arreglo en caso de ser números
     @Override
     public Object suma () {
-        int i = 0;
-        if (datos[i] instanceof Number) {
-            double acum = 0;
-            for (i = 0; i <= indiceSuperior; i++) {
-                acum = acum + (double) datos[i];
-            }
-            return acum;
+        if (vacia()) return null;
+        double acum = 0;
+        for (int i = 0; i < cantidad(); i++) {
+            if (!(datos[i] instanceof Number)) return null;
+            acum += ((Number) datos[i]).doubleValue();
         }
-        return null; //No es número
+        return acum; //No es número: se devuelve null antes de sumar.
     }
 
     @Override
     public void rellenar(Object valor) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        rellenar(valor, capacidad);
     }
 
     @Override
     public ListaDatos arregloDesordenado() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        Arreglo copia = aListaEstatica();
+        for (int i = copia.cantidad() - 1; i > 0; i--) {
+            int j = (int) (Math.random() * (i + 1));
+            Object temporal = copia.obtener(i);
+            copia.modificar(i, copia.obtener(j));
+            copia.modificar(j, temporal);
+        }
+        return copia;
     }
 
     @Override
     public boolean esSublista(ListaDatos lista2) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (!(lista2 instanceof Arreglo)) return false;
+        Arreglo lista = (Arreglo) lista2;
+        for (int i = 0; i < lista.cantidad(); i++) if ((int) buscar(lista.obtener(i)) < 0) return false;
+        return true;
     }
 
     @Override
     public boolean modificarLista(ListaDatos lista2, ListaDatos lista2Nuevos) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (!(lista2 instanceof Arreglo) || !(lista2Nuevos instanceof Arreglo)) return false;
+        Arreglo viejos = ((Arreglo) lista2).aListaEstatica();
+        Arreglo nuevos = ((Arreglo) lista2Nuevos).aListaEstatica();
+        if (viejos.cantidad() != nuevos.cantidad()) return false;
+        boolean resultado = true;
+        for (int i = 0; i < viejos.cantidad(); i++) {
+            int indice = (int) buscar(viejos.obtener(i));
+            if (indice < 0 || !modificar(indice, nuevos.obtener(i))) resultado = false;
+        }
+        return resultado;
     }
 
     @Override
     public boolean retenerLista(ListaDatos lista2) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (!(lista2 instanceof Arreglo)) return false;
+        Arreglo retenidos = ((Arreglo) lista2).aListaEstatica();
+        for (int i = cantidad() - 1; i >= 0; i--) {
+            if ((int) retenidos.buscar(datos[i]) < 0) quitar(i);
+        }
+        return true;
     }
     
     // Devuelve una sublista con los elementos indicados por listaIndices
@@ -546,36 +586,44 @@ public class Arreglo implements VectorFijo {
 
     @Override
     public void imprimirDesc() {
-
+        imprimirDes();
     }
 
     @Override
     public Integer ponerInicio(Object valor) {
+        if (lleno()) return -1;
+        for (int i = cantidad(); i > 0; i--) datos[i] = datos[i - 1];
+        datos[0] = valor;
+        indiceSuperior++;
         return 0;
     }
 
     @Override
     public void iniciaIterador() {
-
+        indiceIterador = 0;
     }
 
     @Override
     public boolean iteradorValido() {
-        return false;
+        return indiceIterador >= 0 && indiceIterador < cantidad();
     }
 
     @Override
     public Object obtenerIterador() {
-        return null;
+        return iteradorValido() ? datos[indiceIterador] : null;
     }
 
     @Override
     public void moverIterador() {
-
+        if (iteradorValido()) indiceIterador++;
     }
 
     @Override
     public Object verInicio() {
-        return null;
+        return vacia() ? null : datos[0];
     }
+    protected static boolean iguales(Object a, Object b) {
+        return a == null || b == null ? a == b : a.toString().equalsIgnoreCase(b.toString());
+    }
+
 }

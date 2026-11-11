@@ -315,4 +315,15 @@ public class ArregloNumerico extends Arreglo {
         }
         return true;
     }
+    @Override
+    public boolean modificar(int indice, Object valor) {
+        return poner(indice, valor);
+    }
+
+    @Override
+    public Integer ponerInicio(Object valor) {
+        if (!(valor instanceof Number)) return -1;
+        return super.ponerInicio(((Number) valor).doubleValue());
+    }
+
 }

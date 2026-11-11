@@ -26,11 +26,12 @@ public class ArregloOrdenado extends Arreglo{
 
     @Override
     public Object buscar(Object valor) {
+        if (valor == null) return -1;
         int posicionB = 0;
-        while (posicionB <= indiceSuperior && ManipuladorObjetos.compararObjetos(valor, datos[posicionB]) > 0) {
+        while (posicionB <= indiceSuperior && compararEnOrden(valor, datos[posicionB]) > 0) {
             posicionB = posicionB + 1;
         }
-        if (posicionB > indiceSuperior || ManipuladorObjetos.compararObjetos(valor, datos[posicionB]) < 0) {
+        if (posicionB > indiceSuperior || compararEnOrden(valor, datos[posicionB]) != 0) {
             return (posicionB + 1) * (-1);
         } else { // igual, si se encontró
             return posicionB + 1;
@@ -39,6 +40,7 @@ public class ArregloOrdenado extends Arreglo{
 
     @Override
     public Integer poner(Object valor) {
+        if (valor == null) return -1;
         if (lleno() == false) { // hay espacio
             int posicionEncontrado = (int) buscar(valor);
             if (posicionEncontrado < 0) {
@@ -61,12 +63,11 @@ public class ArregloOrdenado extends Arreglo{
 
     @Override
     public boolean modificar(int indice, Object valor) {
-        if (validaPosicion(indice)) {
-            quitar(datos[indice]);
-            poner(valor);
-            return true;
-        }
-        return false;
+        if (!validaPosicion(indice) || valor == null) return false;
+        int existente = (int) buscar(valor);
+        if (existente > 0) return existente - 1 == indice;
+        super.quitar(indice);
+        return poner(valor) >= 0;
     }
 
     @Override
@@ -96,22 +97,19 @@ public class ArregloOrdenado extends Arreglo{
 
     @Override
     public boolean agregarLista(ListaDatos lista2) {
-        if (lista2 instanceof Arreglo) {
-            Arreglo arregloLista2 = (Arreglo) lista2;
-            for (int i = 0; i < arregloLista2.cantidad(); i++) {
-                Object valor = arregloLista2.obtener(i);
-                if ((int) buscar(valor) < 0) { // No existe, se puede insertar
-                    poner(valor);
-                }
-            }
-            return true;
+        if (!(lista2 instanceof Arreglo)) return false;
+        Arreglo arregloLista2 = ((Arreglo) lista2).aListaEstatica();
+        boolean completo = true;
+        for (int i = 0; i < arregloLista2.cantidad(); i++) {
+            Object valor = arregloLista2.obtener(i);
+            if ((int) buscar(valor) < 0 && poner(valor) < 0) completo = false;
         }
-        return false;
+        return completo;
     }
 
     @Override
     public void invertir() {
-        for (int i = 0; i <= indiceSuperior / 2; i++) {
+        for (int i = 0; i < cantidad() / 2; i++) {
             Object temp = datos[i];
             datos[i] = datos[indiceSuperior - i];
             datos[indiceSuperior - i] = temp;
@@ -126,66 +124,29 @@ public class ArregloOrdenado extends Arreglo{
     @Override
     public void rellenar(Object valor) {
         if (valor instanceof Number) {
-            // Caso 1: Valor es numérico
+            // Caso 1: Valor es numérico; generar la secuencia respetando el orden y la capacidad.
             double limite = ((Number) valor).doubleValue();
-            if (limite > 0) {
-                if (orden == TipoOrdenamiento.INC) {
-                    // Rellenar de 1 a límite (orden incremental)
-                    for (int i = 1; i <= limite && i <= capacidad; i++) {
-                        datos[indiceSuperior + 1] = i;
-                        indiceSuperior++;
-                    }
-                } else {
-                    // Rellenar de límite a 1 (orden decremental)
-                    for (int i = (int) limite; i >= 1 && i <= capacidad; i--) {
-                        datos[indiceSuperior + 1] = i;
-                        indiceSuperior++;
-                    }
-                }
-            } else if (limite < 0) {
-                if (orden == TipoOrdenamiento.INC) {
-                    // Rellenar de -6 a -1 (orden incremental)
-                    for (int i = (int) limite; i <= -1 && i >= -capacidad; i++) {
-                        datos[indiceSuperior + 1] = i;
-                        indiceSuperior++;
-                    }
-                } else {
-                    // Rellenar de -1 a -6 (orden decremental)
-                    for (int i = -1; i >= limite && i >= -capacidad; i--) {
-                        datos[indiceSuperior + 1] = i;
-                        indiceSuperior++;
-                    }
-                }
-            }
+            if (!Double.isFinite(limite) || limite != Math.rint(limite) || limite < Integer.MIN_VALUE || limite > Integer.MAX_VALUE || limite == 0) return;
+            long inicio = limite > 0 ? 1 : (long) limite;
+            long fin = limite > 0 ? (long) limite : -1;
+            long paso = 1;
+            if (orden == TipoOrdenamiento.DEC) { long temporal = inicio; inicio = fin; fin = temporal; paso = -1; }
+            for (long n = inicio; !lleno() && (paso > 0 ? n <= fin : n >= fin); n += paso) poner((int) n);
         } else if (valor instanceof Character) {
-            // Caso 2: Valor es una letra
+            // Caso 2: Valor es una letra.
             char letra = Character.toUpperCase((Character) valor);
-            if (Character.isLetter(letra)) {
-                if (orden == TipoOrdenamiento.INC) {
-                    // Rellenar de A a letra (orden incremental)
-                    for (char c = 'A'; c <= letra && c <= 'Z'; c++) {
-                        datos[indiceSuperior + 1] = c;
-                        indiceSuperior++;
-                    }
-                } else {
-                    // Rellenar de letra a A (orden decremental)
-                    for (char c = letra; c >= 'A' && c <= 'Z'; c--) {
-                        datos[indiceSuperior + 1] = c;
-                        indiceSuperior++;
-                    }
-                }
+            if (letra < 'A' || letra > 'Z') return;
+            if (orden == TipoOrdenamiento.INC) {
+                for (char c = 'A'; c <= letra && !lleno(); c++) poner(c);
+            } else {
+                for (char c = letra; c >= 'A' && !lleno(); c--) poner(c);
             }
         } else if (valor instanceof String) {
-            // Caso 3: Valor es una cadena
-            String cadena = (String) valor;
-            if (!cadena.isEmpty()) {
-                datos[indiceSuperior + 1] = cadena;
-                indiceSuperior++;
-            }
+            // Caso 3: Valor es una cadena.
+            if (!((String) valor).isEmpty()) poner(valor);
         } else {
-            // Caso 4: Valor es otro tipo de objeto
-            datos[indiceSuperior + 1] = valor;
-            indiceSuperior++;
+            // Caso 4: Valor es otro tipo de objeto.
+            poner(valor);
         }
     }
 
@@ -221,19 +182,70 @@ public class ArregloOrdenado extends Arreglo{
 
     @Override
     public boolean modificarLista(ListaDatos lista2, ListaDatos lista2Nuevos) {
-        if (lista2 instanceof Arreglo && lista2Nuevos instanceof Arreglo) {
-            Arreglo arregloLista2 = (Arreglo) lista2;
-            Arreglo arregloLista2Nuevos = (Arreglo) lista2Nuevos;
-            for (int i = 0; i < arregloLista2.cantidad(); i++) {
-                Object valorViejo = arregloLista2.obtener(i);
-                Object valorNuevo = arregloLista2Nuevos.obtener(i);
-                int posicion = (int) buscar(valorViejo);
-                if (posicion >= 0) {
-                    modificar(posicion, valorNuevo);
-                }
-            }
-            return true;
+        if (!(lista2 instanceof Arreglo) || !(lista2Nuevos instanceof Arreglo)) return false;
+        Arreglo viejos = ((Arreglo) lista2).aListaEstatica();
+        Arreglo nuevos = ((Arreglo) lista2Nuevos).aListaEstatica();
+        if (viejos.cantidad() != nuevos.cantidad()) return false;
+        Arreglo candidato = aListaEstatica();
+        for (int i = 0; i < viejos.cantidad(); i++) {
+            int posicion = (int) buscar(viejos.obtener(i));
+            if (posicion < 0) return false;
+            candidato.modificar(posicion - 1, nuevos.obtener(i));
         }
-        return false;
+        return reemplazarOrdenado(candidato);
+    }
+
+    private int compararEnOrden(Object a, Object b) {
+        return orden == TipoOrdenamiento.INC
+                ? ManipuladorObjetos.compararObjetos(a, b)
+                : ManipuladorObjetos.compararObjetos(b, a);
+    }
+
+    @Override
+    public Integer ponerInicio(Object valor) { return poner(valor); }
+
+    @Override
+    public boolean poner(int indice, Object valor) { return modificar(indice, valor); }
+
+    @Override
+    public void rellenar(Object valor, int cantidad) {
+        if (cantidad > 0 && (int) buscar(valor) < 0) poner(valor);
+    }
+
+    @Override
+    public boolean modificar(Object valorViejo, Object valorNuevo, int numVeces) {
+        int posicion = (int) buscar(valorViejo);
+        return numVeces > 0 && posicion > 0 && modificar(posicion - 1, valorNuevo);
+    }
+
+    @Override
+    public boolean modificarLista(Arreglo indicesBusqueda, Arreglo valoresNuevos) {
+        if (indicesBusqueda == null || valoresNuevos == null || indicesBusqueda.cantidad() != valoresNuevos.cantidad()) return false;
+        Arreglo candidato = aListaEstatica();
+        for (int i = 0; i < indicesBusqueda.cantidad(); i++) {
+            Object indice = indicesBusqueda.obtener(i);
+            if (!(indice instanceof Integer) || !validaPosicion((Integer) indice)) return false;
+            candidato.modificar((Integer) indice, valoresNuevos.obtener(i));
+        }
+        return reemplazarOrdenado(candidato);
+    }
+
+    @Override
+    public boolean substituir(ListaDatos lista2) {
+        if (!(lista2 instanceof Arreglo)) return false;
+        return reemplazarOrdenado(((Arreglo) lista2).aListaEstatica());
+    }
+
+    private boolean reemplazarOrdenado(Arreglo candidato) {
+        if (candidato.cantidad() > capacidad) return false;
+        ArregloOrdenado temporal = new ArregloOrdenado(capacidad, orden);
+        for (int i = 0; i < candidato.cantidad(); i++) {
+            if (temporal.poner(candidato.obtener(i)) < 0) return false;
+        }
+        // Publicar solo si todos los valores respetan la unicidad y la capacidad.
+        datos = temporal.datos;
+        indiceSuperior = temporal.indiceSuperior;
+        indiceIterador = -1;
+        return true;
     }
 }

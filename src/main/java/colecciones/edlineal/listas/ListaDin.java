@@ -794,14 +794,14 @@ public class ListaDin implements ListaDatos {
         RENGLON, COLUMNA
     }
 
-public int cantidad() {
-    int total = 0;
-    for (Nodo actual = primero; actual != null; actual = actual.getLigaDer()) total++;
-    return total;
-}
+    public int cantidad() {
+        int total = 0;
+        for (Nodo actual = primero; actual != null; actual = actual.getLigaDer()) total++;
+        return total;
+    }
 
-private static boolean iguales(Object a, Object b) {
-    return a == null || b == null ? a == b : a.toString().equalsIgnoreCase(b.toString());
-}
+    private static boolean iguales(Object a, Object b) {
+        return a == null || b == null ? a == b : a.toString().equalsIgnoreCase(b.toString());
+    }
 
 }

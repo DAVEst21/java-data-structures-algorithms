@@ -14,6 +14,8 @@ public class ComprobacionesAmpliadas {
 
     public static void main(String[] args) throws Exception {
         lineales();
+        arreglos();
+        ordenados();
         System.out.println("Extended checks passed: " + comprobaciones);
     }
 
@@ -61,6 +63,105 @@ public class ComprobacionesAmpliadas {
         igual(true, cero.lleno()); igual(false, cero.poner("x"));
         cero.vaciar(); igual(null, cero.verTope());
         System.out.println("PASS completed linked stack, list helpers and circular queue");
+    }
+
+    private static void arreglos() throws Exception {
+        Arreglo a = new Arreglo(5);
+        igual(false, a.iteradorValido());
+        igual(null, a.verInicio());
+        igual(0, a.ponerInicio("b")); igual(0, a.ponerInicio("a")); a.poner("c");
+        igual(true, a.cambiar(1, "B"));
+        igual(true, a.cambiar("c", "C", 1));
+        igual(false, a.cambiar(-1, "x"));
+        a.iniciaIterador();
+        for (String valor : new String[]{"a", "B", "C"}) {
+            igual(true, a.iteradorValido()); igual(valor, a.obtenerIterador()); a.moverIterador();
+        }
+        igual(false, a.iteradorValido()); igual(null, a.obtenerIterador());
+        igual("C\nB\na\n", capturar(a::imprimirDesc));
+        igual("C\nB\na\n", capturar(a::mostrarOI));
+        igual(1, a.encontrarLista("b").cantidad());
+        Arreglo copia = a.aListaEstatica(); copia.modificar(0, "otra");
+        igual("a", a.obtener(0));
+        igual(2, a.aListaEstatica(arreglo("b")).cantidad());
+        igual("C", a.aMatriz2D(2, 2).obtener(1, 0));
+        igual(null, a.aMatriz2D(2, 2).obtener(1, 1));
+        igual(null, a.aMatriz2D(-1, 1));
+        igual(true, a.esSublista(arreglo("b", "a")));
+        igual(false, a.esSublista(arreglo("d")));
+        igual(true, a.modificarLista((colecciones.interfaces.ListaDatos) arreglo("a"), arreglo("A1")));
+        igual("A1", a.obtener(0));
+        igual(true, a.retenerLista(arreglo("A1", "C"))); igual(2, a.cantidad());
+        igual(2, ((Arreglo) a.arregloDesordenado()).cantidad());
+        a.rellenar("x", 99); igual(5, a.cantidad()); igual(5, a.contar("x"));
+        igual(-1, a.ponerInicio("sin espacio")); a.vaciar(); igual(false, a.iteradorValido());
+        a.rellenar("z"); igual(5, a.cantidad());
+        Arreglo cero = new Arreglo(0); cero.rellenar("x");
+        igual(0, cero.cantidad()); igual(-1, cero.ponerInicio("x"));
+        igual(null, cero.suma()); igual(null, cero.promedio()); igual(null, cero.encontrarMayor());
+        Arreglo negativos = arreglo(-3, -1, -2);
+        igual(-1.0, negativos.encontrarMayor()); igual(-6.0, negativos.suma()); igual(-2.0, negativos.promedio());
+        colecciones.ednolineal.Arreglo2D tabla = new colecciones.ednolineal.Arreglo2D(2, 2);
+        tabla.cambiar(0, 0, "a"); tabla.cambiar(0, 1, "b"); tabla.cambiar(1, 0, "c"); tabla.cambiar(1, 1, "d");
+        Arreglo filas = new Arreglo(4), columnas = new Arreglo(4);
+        igual(true, filas.agregarMatriz2D(tabla, ListaDin.TipoTabla.RENGLON));
+        igual(true, columnas.agregarMatriz2D(tabla, ListaDin.TipoTabla.COLUMNA));
+        igual("b", filas.obtener(1)); igual("c", columnas.obtener(1));
+        igual(false, new Arreglo(3).agregarMatriz2D(tabla, ListaDin.TipoTabla.RENGLON));
+        ArregloNumerico numeros = new ArregloNumerico(3);
+        numeros.ponerInicio(3); numeros.rellenar(2, 9);
+        igual(3, numeros.cantidad()); igual(false, numeros.modificar(0, "texto"));
+        igual(-1, numeros.ponerInicio("texto"));
+        Arreglo nulos = arreglo(null, "A", null);
+        igual(2, nulos.contar(null)); igual(0, nulos.buscar(null));
+        System.out.println("PASS completed array interface methods and bounded fills");
+    }
+
+    private static void ordenados() {
+        for (ArregloOrdenado.TipoOrdenamiento orden : ArregloOrdenado.TipoOrdenamiento.values()) {
+            boolean asc = orden == ArregloOrdenado.TipoOrdenamiento.INC;
+            ArregloOrdenado a = new ArregloOrdenado(5, orden);
+            a.invertir(); a.invertir();
+            for (int n : new int[]{3, 1, 5, 2, 4}) a.poner(n);
+            for (int i = 0; i < 5; i++) igual(asc ? i + 1 : 5 - i, a.obtener(i));
+            igual(-1, a.poner(3));
+            igual(asc ? 2 : 4, a.buscar(2));
+            igual(false, a.modificar(0, 3)); igual(5, a.cantidad());
+            igual(true, a.modificar(0, 0)); igual(5, a.cantidad());
+            comprobarOrden(a, asc);
+            igual(true, a.poner(0, 8)); comprobarOrden(a, asc);
+            igual(true, a.cambiar(0, 9)); comprobarOrden(a, asc);
+            igual(false, a.agregarLista(arreglo(20))); igual(5, a.cantidad());
+            a.quitar((Object) 3); igual(true, a.ponerInicio(7) >= 0); comprobarOrden(a, asc);
+            a.invertir(); comprobarOrden(a, !asc);
+            igual(true, (int) a.buscar(7) > 0);
+            a.vaciar(); a.rellenar(9); igual(5, a.cantidad()); comprobarOrden(a, !asc);
+            a.vaciar(); a.rellenar(-9); igual(5, a.cantidad()); comprobarOrden(a, !asc);
+            a.vaciar(); a.rellenar('H'); igual(5, a.cantidad());
+            a.vaciar(); a.rellenar("único", 9); igual(1, a.cantidad());
+            a.vaciar(); a.poner(1); a.poner(2); a.poner(3);
+            igual(false, a.modificarLista(arreglo(0), arreglo(a.obtener(1)))); igual(3, a.cantidad());
+            igual(true, a.modificarLista(arreglo(0), arreglo(12))); comprobarOrden(a, !asc);
+            igual(true, a.modificarLista((colecciones.interfaces.ListaDatos) arreglo(12), arreglo(15)));
+            comprobarOrden(a, !asc);
+            igual(false, a.substituir(arreglo(2, 2))); igual(3, a.cantidad());
+            igual(true, a.substituir(arreglo(9, 3, 6))); comprobarOrden(a, !asc);
+        }
+        System.out.println("PASS ascending and descending ordered array mutations");
+    }
+
+    private static void comprobarOrden(Arreglo a, boolean asc) {
+        for (int i = 1; i < a.cantidad(); i++) {
+            double anterior = ((Number) a.obtener(i - 1)).doubleValue();
+            double actual = ((Number) a.obtener(i)).doubleValue();
+            igual(true, asc ? anterior < actual : anterior > actual);
+        }
+    }
+
+    static Arreglo arreglo(Object... valores) {
+        Arreglo a = new Arreglo(valores.length);
+        for (Object valor : valores) a.poner(valor);
+        return a;
     }
 
     static void igual(Object esperado, Object actual) {
