@@ -1,0 +1,38 @@
+# Build products and generated files
+/target/
+/build/
+/out/
+*.class
+*.log
+*.tmp
+*.swp
+*~
+
+# Local IDE and operating-system metadata
+/.idea/
+/.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+
+# Personal configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+/settings.xml
+
+# Original coursework lives outside this repository
+/Tareas/
+
+# Generated examples; retain the original image used as input
+/resultados/*
+!/resultados/imagenes/
+/resultados/imagenes/*
+!/resultados/imagenes/cristiano-ronaldo-silencio.jpg
+/src/main/java/resources/encriptacion/encriptado.txt
+/src/main/java/resources/encriptacion/desencriptado.txt
