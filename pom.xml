@@ -9,6 +9,16 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <exec.mainClass>com.mycompany.ed_4b_25.principales.PrincipalArreglo</exec.mainClass>
+        <exec.mainClass>principales.arreglos.PrincipalArreglo</exec.mainClass>
     </properties>
+    <dependencies>
+        <!-- Existing bundled dependency, used only by GraficadorDispersion. -->
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/jfreechart-demo-1.5.2-jar-with-dependencies.jar</systemPath>
+        </dependency>
+    </dependencies>
 </project>

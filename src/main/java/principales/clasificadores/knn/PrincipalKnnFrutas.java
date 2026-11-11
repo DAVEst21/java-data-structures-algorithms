@@ -16,7 +16,7 @@ public class PrincipalKnnFrutas {
         // Cargar datos de entrenamiento
         ConjuntoDatos conjunto = new ConjuntoDatos(numDatos, numCaracteristicas);
         Salida.salidaPorDefecto("Cargando datos de entrenamiento...\n");
-        if (!conjunto.leerDatos("C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\frutas\\frutas.txt")) {
+        if (!conjunto.leerDatos("src/main/java/resources/frutas/frutas.txt")) {
             Salida.salidaPorDefecto("Error al leer el archivo .txt\n");
             return; // Termina si hay error en la lectura
         }

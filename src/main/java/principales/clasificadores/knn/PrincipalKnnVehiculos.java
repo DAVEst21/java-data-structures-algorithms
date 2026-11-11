@@ -13,7 +13,7 @@ public class PrincipalKnnVehiculos {
         // Cargar datos de entrenamiento
         ConjuntoDatos conjunto = new ConjuntoDatos(numDatos, numCaracteristicas);
         Salida.salidaPorDefecto("Cargando datos de entrenamiento...\n");
-        if (!conjunto.leerDatos("C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\vehiculos\\vehiculos.txt")) {
+        if (!conjunto.leerDatos("src/main/java/resources/vehiculos/vehiculos.txt")) {
             Salida.salidaPorDefecto("Error al leer el archivo vehiculos.txt\n");
             return;
         }

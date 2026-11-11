@@ -8,8 +8,8 @@ import utils.entradasalida.cadenas.Salida;
 public class PrincipalAnalisisCasas {
     public static void main(String[] args) {
         // Leer datos de archivos
-        Arreglo arregloHabitaciones = ArchivoTextoD.leer("C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\casas\\habitaciones.txt");
-        Arreglo arregloPrecios = ArchivoTextoD.leer("C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\casas\\precios.txt");
+        Arreglo arregloHabitaciones = ArchivoTextoD.leer("src/main/java/resources/casas/habitaciones.txt");
+        Arreglo arregloPrecios = ArchivoTextoD.leer("src/main/java/resources/casas/precios.txt");
 
         // Crear objeto de datos
         DatosCasas datos = new DatosCasas(arregloHabitaciones, arregloPrecios);

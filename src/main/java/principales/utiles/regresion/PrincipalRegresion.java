@@ -8,8 +8,8 @@ public class PrincipalRegresion {
     public static void main(String[] args) {
         // Cargar los datos de los archivos de texto
         ArregloNumerico[] datos =
-                RegresionLineal.cargarDatos("C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\casas\\habitaciones.txt",
-                        "C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\casas\\precios.txt");
+                RegresionLineal.cargarDatos("src/main/java/resources/casas/habitaciones.txt",
+                        "src/main/java/resources/casas/precios.txt");
         ArregloNumerico numHabitaciones = datos[0];
         ArregloNumerico precios = datos[1];
 

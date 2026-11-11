@@ -10,7 +10,7 @@ public class PrincipalImagen {
     public static void main(String[] args) {
         try {
             // Cargar imagen
-            ProcesadorImagen procesador = new ProcesadorImagen("C:/Users/Usuario/Documents/NetBeansProjects/ed_4b_25/cristiano-ronaldo-silencio.jpg");
+            ProcesadorImagen procesador = new ProcesadorImagen("resultados/imagenes/cristiano-ronaldo-silencio.jpg");
 
             Salida.salidaPorDefecto("Seleccione la operación a realizar:\n");
             Salida.salidaPorDefecto("1. Convertir a escala de grises\n");
@@ -22,73 +22,73 @@ public class PrincipalImagen {
             Salida.salidaPorDefecto("7. Rotar 270 grados\n");
             Salida.salidaPorDefecto("8. Aplicar transpuesta\n");
             Salida.salidaPorDefecto("9. Redimensionar la imagen\n");
-            Salida.salidaPorDefecto("11. Agregar marco rojo\n");
-            Salida.salidaPorDefecto("12. Aplicar efecto negativo\n");
+            Salida.salidaPorDefecto("10. Agregar marco rojo\n");
+            Salida.salidaPorDefecto("11. Aplicar efecto negativo\n");
 
             int opcion = Entrada.terminalDouble().intValue();
             switch (opcion) {
                 case 1 -> {
                     procesador.convertirAGrises();
-                    procesador.guardarImagen("src/grises.jpg");
+                    procesador.guardarImagen("target/grises.jpg");
                     Salida.salidaPorDefecto("Imagen convertida a escala de grises.\n");
                 }
                 case 2 -> {
                     procesador.ajustarBrillo(30);
-                    procesador.guardarImagen("src/brillo.jpg");
+                    procesador.guardarImagen("target/brillo.jpg");
                     Salida.salidaPorDefecto("Brillo ajustado.\n");
                 }
                 case 3 -> {
                     procesador.invertirHorizontal();
-                    procesador.guardarImagen("src/horizontal.jpg");
+                    procesador.guardarImagen("target/horizontal.jpg");
                     Salida.salidaPorDefecto("Inversión horizontal realizada.\n");
                 }
                 case 4 -> {
                     procesador.invertirVertical();
-                    procesador.guardarImagen("src/vertical.jpg");
+                    procesador.guardarImagen("target/vertical.jpg");
                     Salida.salidaPorDefecto("Inversión vertical realizada.\n");
                 }
                 case 5 -> {
                     procesador.rotar90Grados();
-                    procesador.guardarImagen("src/rot90.jpg");
+                    procesador.guardarImagen("target/rot90.jpg");
                     Salida.salidaPorDefecto("Imagen rotada 90 grados.\n");
                 }
                 case 6 -> {
                     procesador.rotar180Grados();
-                    procesador.guardarImagen("src/rot180.jpg");
+                    procesador.guardarImagen("target/rot180.jpg");
                     Salida.salidaPorDefecto("Imagen rotada 180 grados.\n");
                 }
                 case 7 -> {
                     procesador.rotar270Grados();
-                    procesador.guardarImagen("src/rot270.jpg");
+                    procesador.guardarImagen("target/rot270.jpg");
                     Salida.salidaPorDefecto("Imagen rotada 270 grados.\n");
                 }
                 case 8 -> {
                     procesador.aplicarTranspuesta();
-                    procesador.guardarImagen("src/transpuesta.jpg");
+                    procesador.guardarImagen("target/transpuesta.jpg");
                     Salida.salidaPorDefecto("Transpuesta aplicada.\n");
                 }
                 case 9 -> {
                     // Usando enumerados
                     procesador.redimensionar(ProcesadorImagen.FactorEscala.DOBLE); // Al doble de tamaño
-                    procesador.guardarImagen("src/redDOBLE.jpg");
+                    procesador.guardarImagen("target/redDOBLE.jpg");
                     procesador.redimensionar(ProcesadorImagen.FactorEscala.MITAD); // A la mitad
-                    procesador.guardarImagen("src/redMITAD.jpg");
+                    procesador.guardarImagen("target/redMITAD.jpg");
                     // Usando factor numérico
                     procesador.redimensionar(1.5); // Aumentar 50%
-                    procesador.guardarImagen("src/red50porciento.jpg");
+                    procesador.guardarImagen("target/red50porciento.jpg");
                     // Usando dimensiones específicas
                     procesador.redimensionar(800, 600); // Redimensionar a 800x600 píxeles
-                    procesador.guardarImagen("src/red800x600.jpg");
+                    procesador.guardarImagen("target/red800x600.jpg");
                     Salida.salidaPorDefecto("Imagen redimensionada.\n");
                 }
                 case 10 -> {
                     procesador.agregarMarco(20, 0xFFFF0000);
-                    procesador.guardarImagen("src/marco.jpg");
+                    procesador.guardarImagen("target/marco.jpg");
                     Salida.salidaPorDefecto("Marco rojo agregado.\n");
                 }
                 case 11 -> {
                     procesador.aplicarNegativo();
-                    procesador.guardarImagen("src/negativo.jpg");
+                    procesador.guardarImagen("target/negativo.jpg");
                     Salida.salidaPorDefecto("Efecto negativo aplicado.\n");
                 }
                 default -> Salida.salidaPorDefecto("Opción no válida.\n");

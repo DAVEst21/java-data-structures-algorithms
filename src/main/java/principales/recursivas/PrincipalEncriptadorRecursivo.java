@@ -10,7 +10,7 @@ import static utils.encriptadores.EncriptadorRecursivo.*;
 public class PrincipalEncriptadorRecursivo {
     public static void main(String[] args) {
         // Leer el archivo de entrada
-        Arreglo lineas = ArchivoTextoD.leer("C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\encriptacion\\entrada.txt");
+        Arreglo lineas = ArchivoTextoD.leer("src/main/java/resources/encriptacion/entrada.txt");
         if (lineas == null || lineas.vacia()) {
             Salida.salidaPorDefecto("Error al leer el archivo o archivo vacío.\n");
             return;
@@ -39,10 +39,10 @@ public class PrincipalEncriptadorRecursivo {
                 lineasEncriptadas.poner(linea); // Almacena la original si falla
             }
         }
-        ArchivoTextoD.escribir(lineasEncriptadas, "C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\encriptacion\\encriptado.txt");
+        ArchivoTextoD.escribir(lineasEncriptadas, "target/encriptado.txt");
 
         // Desencriptar el archivo encriptado
-        Arreglo lineasEncriptadasLeidas = ArchivoTextoD.leer("C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\encriptacion\\encriptado.txt");
+        Arreglo lineasEncriptadasLeidas = ArchivoTextoD.leer("target/encriptado.txt");
         Arreglo lineasDesencriptadas = new Arreglo(lineasEncriptadasLeidas.cantidad());
         for (int i = 0; i < lineasEncriptadasLeidas.cantidad(); i++) {
             String linea = (String) lineasEncriptadasLeidas.obtener(i);
@@ -50,6 +50,6 @@ public class PrincipalEncriptadorRecursivo {
             lineasDesencriptadas.poner(desencriptada);
             Salida.salidaPorDefecto("Línea desencriptada: " + desencriptada + "\n");
         }
-        ArchivoTextoD.escribir(lineasDesencriptadas, "C:\\Users\\Usuario\\Documents\\NetBeansProjects\\ed_4b_25\\src\\main\\java\\resources\\encriptacion\\desencriptado.txt");
+        ArchivoTextoD.escribir(lineasDesencriptadas, "target/desencriptado.txt");
     }
 }
