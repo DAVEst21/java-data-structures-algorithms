@@ -4,20 +4,20 @@ An educational Java project that builds data structures by hand and uses them in
 
 Developed by **David Ignacio Becerra Morán** for the Data Structures course in the Software Engineering program at Universidad Autónoma de Zacatecas in 2025. The original project identifier is `ed_4b_25`; the suggested repository name is `java-data-structures-algorithms`. Original Spanish identifiers and comments are preserved.
 
-The custom structures and algorithms are academic implementations. Implementing them directly makes index management, links, traversal, capacity, recursion, and composition visible. This repository also retains third-party support code, identified below. Some modules remain incomplete: the verified scope is explicitly separated from experimental work.
+The custom structures and algorithms are academic implementations. Implementing them directly makes index management, links, traversal, capacity, recursion, and composition visible. This repository also retains third-party support code, identified below. The previously unfinished collection methods are now implemented. Verified behavior is separated from remaining mathematical and usage limitations.
 
 ## Data structures and algorithms
 
 | Area | Implementations | Current scope |
 | --- | --- | --- |
-| Arrays | `Arreglo`, `ArregloNumerico`, `ArregloOrdenado` | Basic fixed-capacity operations verified; ascending ordered insertion rejects duplicates. Several inherited methods remain incomplete. |
-| Linked lists | `ListaDin`, `Nodo`, `ListaDinClave`, `NodoClaveValor` | Basic insertion, lookup, indexed removal, traversal, and key replacement verified; advanced methods have limitations. |
-| Stacks | `PilaFija`, `PilaDin` | Fixed stack verified; dynamic stack incomplete. |
-| Queues | `ColaFija`, `ColaDin`, `ColaPrioridad` | Circular FIFO, linked FIFO, and array-backed priority selection verified for selected operations. Fixed queue has two pending methods. |
+| Arrays | `Arreglo`, `ArregloNumerico`, `ArregloOrdenado` | Fixed-capacity operations, conversions, iterators, bounded fills, and ascending/descending ordered mutations checked. Ordered arrays reject duplicates. |
+| Linked lists | `ListaDin`, `Nodo`, `ListaDinClave`, `NodoClaveValor` | Insertion, lookup, removal, traversal, reverse display, conversions beyond ten nodes, and key replacement checked; contracts remain specific to each structure. |
+| Stacks | `PilaFija`, `PilaDin` | Both stacks checked for LIFO, empty state, clearing, and display; the dynamic stack retains singly linked tail removal. |
+| Queues | `ColaFija`, `ColaDin`, `ColaPrioridad` | Circular FIFO, linked FIFO, clearing, peek, priority direction, and ties checked. Zero-capacity fixed queues reject insertion. |
 | Multidimensional arrays | `Arreglo2D`, `Arreglo2DNumerico`, `Arreglo3D` | Bounds, cell access, transpose, and a known matrix product verified. |
 | Sorting | `MergeSort` | Recursive split and merge using `Arreglo`; empty, singleton, sorted, reversed, negative, and duplicate inputs checked. |
 | Recursion | Binary/hexadecimal conversion, binary-digit validation, `EncriptadorRecursivo` | Known results and boundary cases checked, including examples from the academic report. |
-| Applications | Calculator, housing statistics, regression, image processing, sales, farming, race records, airport simulation, KNN, audio | Selected applications are reproducible; others are retained as experiments. See [verification](docs/VERIFICATION.md) and [limitations](docs/LIMITATIONS.md). |
+| Applications | Calculator, housing statistics, regression, image processing, sales, farming, race records, airport simulation, KNN, audio | Known-result checks cover selected operations across these applications; larger mathematical and input domains remain bounded. See [verification](docs/VERIFICATION.md) and [limitations](docs/LIMITATIONS.md). |
 
 ## Requirements and existing dependencies
 
@@ -43,9 +43,11 @@ bash scripts/verify.sh
 
 ```text
 Groups passed: 14/14
+...
+Extended checks passed: 384
 ```
 
-These are fourteen groups of selected behavior checks, not a coverage measurement or a claim that every module is complete. [Verification details](docs/VERIFICATION.md) distinguish source inspection, compilation, executed examples, checked behavior, and pending work.
+The original fourteen groups and 384 additional assertions pass. These counts describe explicit checks, not a coverage measurement or a guarantee for all inputs. [Verification details](docs/VERIFICATION.md) distinguish source inspection, compilation, executed examples, checked behavior, and pending work.
 
 To compile directly on Windows with PowerShell and JDK 21:
 
@@ -102,9 +104,9 @@ For the image application:
 bash scripts/run.sh principales.utiles.imagenes.PrincipalImagen
 ```
 
-Choose `1` for grayscale. The included original image is read from `resultados/imagenes/`; the result is written to `target/grises.jpg`. Menu options `10` and `11` select the frame and negative operations. Only grayscale was exercised through this menu; the checking class also checks color components and rotated dimensions using a tiny generated image.
+Choose `1` for grayscale. The included original image is read from `resultados/imagenes/`; the result is written to `target/grises.jpg`. Menu options `10` and `11` select the frame and negative operations. Grayscale was exercised through this menu. Checks using generated images cover color components, flips, 90/180/270-degree rotations, transpose, negative, brightness, frame dimensions, and a 1 × 1 resize. JPEG comparisons allow compression error.
 
-The calculator entry point is `principales.registros.calculadora.PrincipalCalculadora`. A directly checked expression, `(1-2.0)*3/2^(12.0-8)`, produces `-0.1875`. The core conversion and evaluation were checked programmatically; the multi-prompt variable-entry flow was not verified.
+The calculator entry point is `principales.registros.calculadora.PrincipalCalculadora`. A directly checked expression, `(1-2.0)*3/2^(12.0-8)`, produces `-0.1875`. The core methods and the multi-prompt variable-entry flow were checked. The formerly pending `TratamientoExpresiones.convertirInfijaPostfija` now reuses this same stack-based converter. Chained exponentiation is right-associative (`2^3^2` gives `512`); malformed expressions, division by zero, and capacity overflow are rejected. Unary operators remain unsupported.
 
 Generated outputs from the adjusted examples go to ignored `target/`. The original academic output folders remain locally available and are not overwritten by these examples.
 
@@ -146,9 +148,9 @@ The original resource layout and Maven coordinates are preserved. There is no si
 
 ## Implementation notes and learning outcomes
 
-- `Arreglo` uses an object array and an upper occupied index. It distinguishes capacity from element count, and shifts elements for removal. Most text comparisons use case-insensitive `toString()` equality.
+- `Arreglo` uses an object array and an upper occupied index. It distinguishes capacity from element count, and shifts elements for removal. Text comparisons use case-insensitive `toString()` equality; numeric storage and signed search results have structure-specific contracts.
 - `ListaDin` maintains first/last links and an explicit iterator. Its `quitar(Object)` removes **all** matching values; `quitar(int)` removes one position. `ColaDin` now uses the latter to preserve FIFO duplicates.
-- `ArregloOrdenado.buscar` returns **one-based** positive positions when found and negative insertion positions otherwise. Ordinary array indexing remains zero-based. Ascending search/insertion is the verified path.
+- `ArregloOrdenado.buscar` returns **one-based** positive positions when found and negative insertion positions otherwise. Ordinary array indexing remains zero-based. Both directions are checked. Modification can reposition a value to maintain order; duplicate-producing mutations are rejected. The indexed `modificarLista(Arreglo, Arreglo)` overload differs from the old/new-value `modificarLista(ListaDatos, ListaDatos)` overload.
 - `ColaPrioridad` appends to a custom array and scans when selecting an element. It is not implemented as a heap.
 - Recursive conversion exposes quotient/remainder steps and base cases. Merge Sort exposes splitting, recursive calls, and merging through the custom array API.
 - The applications reuse these structures to represent pixels, numeric samples, expression operands, records, and data columns. Their limitations show why individual operation checks matter beyond a successful demonstration.
@@ -165,14 +167,33 @@ For fixed-cost element operations, the implementation supports these time bounds
 | Merge Sort | O(n log n) | Two half-size recursive calls and linear copying/merging per level; O(n) peak auxiliary storage plus O(log n) call depth. |
 | Base conversion for positive n | O(log n) | Repeated division by the fixed base; output and recursive depth scale with the digit count. |
 
-## Known limitations and incomplete modules
+## Additional checked applications
 
-- The broad collection interfaces contain stubs and inconsistent contracts. Verified operations do not imply complete interface support.
-- `PilaDin` removal and printing are incomplete through `ListaDin`. `ColaFija.vaciar` and `verTope` throw `UnsupportedOperationException`; zero-capacity insertion is unsafe.
-- Descending ordered-array insertion/search, some ordered mutations, oversized fills, negative linked-list indices, and fixed-size list conversion helpers have known defects or constraints.
-- KNN is experimental: distance/class pairs are compared as text rather than numeric distances, and discretization/counting is inconsistent. Its historical predictions are not presented as validated results.
-- The calculator assumes valid syntax and sufficient stack capacity. Chained exponentiation is left-associative; unary minus is unsupported. `TratamientoExpresiones` has a separate unfinished infix converter.
-- Audio, farming, race aggregation, and airport simulation need additional validation. The audio main currently contains only commented experiments; the race demonstration returns `null` for its aggregate query.
-- File-error handling, null values, mismatched data lengths, and several advanced numerical methods require further work. Example resources are filesystem inputs; the packaged JAR is not standalone.
+```bash
+bash scripts/run.sh principales.pilas.PrincipalPilaDin
+bash scripts/run.sh principales.colas.PrincipalSimulacionAeropuerto
+bash scripts/run.sh principales.registros.carreras.PrincipalCarreras
+bash scripts/run.sh principales.registros.granja.PrincipalGranja
+bash scripts/run.sh principales.utiles.audio.PrincipalAudio
+bash scripts/run.sh principales.clasificadores.knn.PrincipalKnnFrutas
+```
 
-See [the detailed limitations and separate follow-up proposals](docs/LIMITATIONS.md). No pending modules were filled in to imply completion.
+- **Dynamic stack:** the original three-value demonstration now removes and displays values correctly. Tail removal traverses the existing singly linked nodes: O(n); push and peek remain O(1).
+- **KNN:** still uses `ArregloOrdenado`, now with numeric distance comparison. Equal distances retain distinct training rows, voting ties favor the nearest tied class, and counts use consistent rounded bins. Training rows `2,A` and `10,B`, query `0`, and `k=1` now select `A`. Invalid shapes, nonfinite values, and invalid `k` are rejected. When all information weights are zero, features receive equal weights. These are correctness checks on small examples, not a classification-accuracy study.
+- **Race records:** event/runner/year axes now agree between insertion and lookup; the original main reports `90.0` for its aggregate query.
+- **Farming and sales:** farming queries were checked with deterministic monthly values, and every farming menu option was executed. Sales checks cover quantities, aligned item/count storage, and known totals; the original demonstrations retain totals `116.0` and `124.0`.
+- **Audio:** the main reads the included WAV, reports energy, and writes a time-reversed file to `target/audio_invertido.wav`. Optional arguments specify input/output paths. Speed and silence operations preserve complete channel frames, and WAV frame counts follow the current buffer length. Synthetic mono/stereo and empty-output checks pass. The original commented experiments and plus-sign filter are retained.
+- **Airport:** timestamps use `long`, advancing time refreshes queued waiting priorities, and processing respects runway count. This remains a discrete educational simulation.
+
+## Known limitations
+
+- Collection APIs retain their original differences: arrays use signed/index results, lists return values, indexed `poner` replaces in arrays but inserts in lists, and some bulk methods can partially apply. Copying is shallow; some substitution methods share storage/nodes. Do not mutate during iteration or change a backing array directly when relying on ordering.
+- Vector dependence tests one supplied coefficient combination; it is not a general linear-dependence solver. A solver would require a separately reviewed algorithm change.
+- KNN requires enough configured capacity and valid finite features. Recreate the classifier after reloading or changing its training data. No normalization, missing-feature inference, accuracy, or large-dataset performance claim is made.
+- The calculator supports binary operators and numeric operands; unary minus is unsupported. Compact postfix syntax represents single-digit operands; separate larger postfix operands with whitespace.
+- Recursive text transformation is a reversible exercise; literal/nested parentheses are not escaped and recursion is not designed for arbitrarily large text.
+- Pearson returns `0.0` for empty/zero-variance inputs by the preserved implementation convention, although mathematical correlation is undefined there. Regression retains fixed gradient-descent parameters and cannot guarantee convergence for arbitrary data.
+- Audio keeps the report's filter formula and simple frame sampling. PCM writes require finite amplitudes in range; adjust volume if necessary. No signal-quality claim is made. JPEG output is lossy and opaque.
+- Resources are filesystem inputs and the packaged JAR is not standalone. Maven's local-JAR warning and native Windows validation remain outstanding.
+
+See [remaining constraints and separate follow-up proposals](docs/LIMITATIONS.md) and [the expanded verification record](docs/VERIFICATION.md).

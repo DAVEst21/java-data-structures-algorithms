@@ -220,6 +220,13 @@ public class ComprobacionesAmpliadas {
         igual(false, claves.poner(null, "x")); igual(false, claves.poner("x", null));
         igual(null, claves.buscar(null)); igual(false, claves.agregarListasDinamicas(viejos, nuevos));
         igual(0, claves.cantidad());
+        Arreglo barajado = (Arreglo) arreglo(1, 2, 2, 3).arregloDesordenado();
+        igual(4, barajado.cantidad()); igual(1, barajado.contar(1));
+        igual(2, barajado.contar(2)); igual(1, barajado.contar(3));
+        ListaDin mezcla = new ListaDin(); mezcla.poner("a"); mezcla.poner("b"); mezcla.poner("b");
+        ListaDin mezclada = (ListaDin) mezcla.arregloDesordenado();
+        igual(3, mezclada.cantidad()); igual(1, mezclada.contar("a")); igual(2, mezclada.contar("b"));
+        igual("a", mezcla.verInicio());
         System.out.println("PASS inherited mutation guards, textual ordering and vector dimensions");
     }
 

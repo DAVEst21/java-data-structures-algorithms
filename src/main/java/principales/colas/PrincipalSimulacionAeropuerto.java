@@ -5,11 +5,11 @@ import colecciones.edlineal.colas.colapriori.SimulacionAeropuerto;
 
 public class PrincipalSimulacionAeropuerto {
     public static void main(String[] args) {
-        // Crear simulación con 2 pistas
-        SimulacionAeropuerto aeropuerto = new SimulacionAeropuerto(2);
-
         // Hora base para la simulación (ahora)
         long horaBase = System.currentTimeMillis();
+
+        // Crear simulación con 2 pistas
+        SimulacionAeropuerto aeropuerto = new SimulacionAeropuerto(2);
 
         // Agregar algunos aviones con diferentes horas planificadas
         aeropuerto.agregarAvion(new Avion("Vuelo123", "Aeroméxico", "Nueva York",

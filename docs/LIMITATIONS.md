@@ -1,45 +1,62 @@
-# Known limitations and separate follow-up proposals
+# Current limits and preserved contracts
 
-This is a preserved academic codebase. The items below were intentionally left in place. Statements marked **reproduced** were observed during this review; others come from source inspection. The executable checking class verifies its documented subset, not every collection contract or application.
+The collection stubs, dynamic-stack removal/display, fixed-queue clearing/peek, descending ordered operations, numeric KNN ordering, and application defects identified in the first review have been addressed. The current JDK suite passes its original 14 groups and 384 additional assertions. These results do not establish correctness for every possible input.
 
-## Collection contracts
+## Corrections completed
 
-- `Arreglo` has unimplemented interface methods returning `false`, `null`, or default values, empty bodies, and five methods throwing `UnsupportedOperationException`. Examples include `cambiar`, matrix/list conversions, iterator methods, `ponerInicio`, `verInicio`, `rellenar(Object)`, `arregloDesordenado`, `esSublista`, and `retenerLista`. An inherited method being callable does not mean a subclass implements it correctly.
-- `Arreglo.rellenar(valor, cantidad)` can set the occupied count beyond capacity. **Reproduced:** a capacity-one array filled with count three reports `cantidad() == 3`. Use only bounded fills until that contract is repaired.
-- `Arreglo.esIgual` compares object references and capacity, including unused backing cells. It is not general value equality. `substituir` shares backing storage; clones copy element references, not nested objects.
-- `Arreglo.promedio`, `suma`, and `encontrarMayor` assume compatible numeric storage, access the first backing cell, and cast directly to `double`. Empty zero-capacity arrays, mixed numeric wrapper types, and all-negative maxima are unsafe or incorrect in some paths.
-- `ArregloOrdenado.buscar`/`poner` assume ascending order even when `DEC` is selected. **Reproduced:** inserting `3, 1, 2` into a `DEC` array yields `1, 2, 3`. Its separate `invertir` override still fails on an empty array. `modificar` can remove a value before discovering that its replacement is a duplicate; `modificarLista` mixes one-based search results and zero-based mutation indices. Ordered fill and inherited mutation methods can violate capacity or ordering.
-- `ListaDin.quitar()` returns `null` without removing anything, and `imprimirDesc()` has an empty body. **Reproduced:** pushing `5.0` into `PilaDin`, then popping, returns `null` and leaves `5.0` at the top. The dynamic stack is incomplete; no pending method was implemented in this work.
-- `ListaDin.obtener` and `cambiar` do not reject negative indices. **Reproduced:** `obtener(-1)` returns the first element. Other methods such as `quitar(int)` do guard negative values. Its `modificar(Object,Object,int)` is a stub, while `cambiar(Object,Object,int)` has an implementation.
-- `ListaDin.aListaEstatica`, its filtering overload, `buscarValores`, and `mostrarOI` use capacity ten and can silently lose results on larger lists. `arregloDesordenado` only clones; it does not shuffle. `redimensionar` truncates rather than padding to a requested length. Substitution shares nodes, and structural changes do not consistently reset active iterators. Self-appending a list is unsafe.
-- `ColaFija.vaciar` and `verTope` throw `UnsupportedOperationException`. The verified circular queue operations assume positive capacity. **Reproduced:** inserting into capacity zero throws `ArrayIndexOutOfBoundsException`.
-- Most containers accept `Object`, but search/comparison code often assumes non-null values and compares case-insensitive string representations. Their contracts are not interchangeable. `ArregloOrdenado.buscar` uses one-based signed results; `Arreglo.buscar` uses zero-based indices or `-1`; `ListaDin.buscar` returns a value or `null`.
+| Original finding | Current behavior |
+| --- | --- |
+| Dynamic stack removed nothing and printed nothing | `ListaDin.quitar()` removes the last node; reverse display uses the existing `PilaFija`, sized for all nodes. |
+| Collection methods returned placeholders or threw unimplemented errors | Array conversion, matching, aliases, iterator, fill, shuffle, retention, and replacement methods are implemented; fixed queue has clearing and peek. No placeholder method bodies remain in the reviewed collection classes. |
+| List helpers truncated to ten values | Conversion, reverse display, and occurrence positions use the current node count. |
+| Negative list indices referred to the first item | Indexed lookup/change reject negative indices. |
+| Oversized fill corrupted array count | Fill is bounded by capacity; numeric subclasses retain numeric storage. |
+| Descending search/insertion and ordered mutations broke invariants | Search honors direction, inversion safely switches direction, mutations reinsert in order, and duplicate-producing replacements are rejected without losing data. |
+| KNN ordered numeric distances as text | Pairs implement numeric comparison with original row index as tie-breaker; equal-distance rows are retained in the custom ordered array. Rounded-bin counts, loaded-row count, voting ties, and input checks are corrected. |
+| Infix conversion was pending; terminal prompts lost piped values | Conversion reuses the existing calculator stack algorithm; terminal calls share one reader. Errors and expression capacity limits are explicit. |
+| Race lookup reversed cube axes | Event/runner/year order is consistent; original aggregate is `90.0`. |
+| Farming December output cast an array to a number | Uses the returned five-element array by year; empty aggregate queries are guarded. |
+| Sales cashier fields were swapped | Correct constructor argument order; invalid quantities/items are rejected. |
+| Statistics silently truncated unequal inputs | Paired values are validated; sample/population explanatory text now describes cancellation of normalization factors. |
+| WAV headers kept old frame counts | Current buffer length determines frame count; speed, silence, and time reversal preserve full channel frames. |
+| Airport epoch times overflowed `int` and priorities became stale | Times use `long`; advancing time rebuilds priorities using the existing custom queue. |
 
-## Algorithms and applications
+## Collection contracts retained
 
-- **KNN remains experimental.** `ParDistanciaClase` is not a `Number`; `ManipuladorObjetos.compararObjetos` compares its `toString()` instead of `obtenerDistancia()`. Numeric distances can therefore be selected in the wrong order. **Reproduced:** training rows `2,A` and `10,B`, one feature, query `0`, and `k=1` predict `B` even though `A` is nearer. Rounded values are also counted against original unrounded values in information-mutual calculations. Exact dataset capacity, valid `k`, complete feature rows, and zero-information behavior need explicit validation. No accuracy figure is claimed.
-- **Merge Sort** accepts numeric elements, compares through `double`, and can change some element types. Large integers can lose precision. Numeric ordering and duplicates were checked with small integers; nonnumeric inputs and numeric-type preservation are outside its verified contract.
-- **Calculator:** assumes valid syntax, binary operators, and sufficient stack capacity. It treats repeated exponentiation as left-associative, does not support unary minus, and does not validate malformed input or stack failures. `TratamientoExpresiones` is separate: its infix-to-postfix converter returns an empty string, and its postfix evaluator tokenizes single characters.
-- **Recursive text transformation:** an educational reversible encoding, not cryptographic protection. Literal/nested parentheses are not escaped, and arbitrarily deep text recursion is not bounded. Tests cover disjoint segments, empty input, invalid ranges, and the report's round-trip example.
-- **Numerical vectors:** `sonLinealmenteDependientes` tests one supplied coefficient combination rather than solving whether any nontrivial combination exists. Orthogonality/parallelism, mismatched dimensions, zero divisors, and exact floating-point comparisons need further review. The original methods were not redesigned.
-- **Housing/statistics:** no length mismatch rejection in the paired-list traversals; zero variance and empty input return `0.0` by convention. This does not mean Pearson correlation is mathematically defined for those inputs. `AnalizadorPrecios.compararCoeficientesPearson` explains similar correlations as a large-sample effect, but consistent sample/population normalization cancels in Pearson's ratio. Its explanatory text is retained; the interpretation is not endorsed as a verified mathematical conclusion. Regression has fixed step size and iteration count, with no general convergence or empty/mismatched-input guarantee.
-- **Audio:** the main contains only commented experiments, including old absolute paths. `AudioFileRecord` keeps original `numFrames` while speed/silence operations change buffer length, so writing transformed audio needs review. Its pre-emphasis formula uses a plus sign; no signal-processing quality claim is made. Missing-file behavior and multichannel transforms were not verified.
-- **Image processing:** grayscale and selected rotation behavior were checked. Other transformations have not all been checked against known pixels. Files are always written as JPEG, so transparency is not retained and output is lossy. Input format errors and extreme dimensions need validation.
-- **Race records:** the demonstration completes but prints `Recorridos null`. Insertion indexes the cube as event/runner/year; the aggregate lookup passes runner/event/year. Missing index results are not consistently guarded. This remains an experimental application.
-- **Airport simulation:** epoch milliseconds are narrowed to `int` in aircraft fields. Stored queue priorities are calculated on insertion and not refreshed by `avanzarTiempo`. It is not a validated time simulation.
-- **Sales and farming:** retained demonstrations, not production systems. Sample sales mains printed totals `116.0` and `124.0`; all business rules, random farming scenarios, validation, and menu paths remain outside the checked scope.
-- **Input/output:** `ArchivoTextoD` assumes valid paths and can close uninitialized readers/writers in error paths; empty writes are not handled. `Entrada` constructs a new buffered reader for each prompt and returns from `finally`, potentially suppressing parse errors or consuming piped input unexpectedly. Multi-prompt UI behavior was not verified. Existing files were read and written only through valid selected paths.
+- Structures intentionally keep different return conventions. `Arreglo.buscar` returns a zero-based index or `-1`; `ArregloOrdenado.buscar` returns a one-based positive result or negative insertion position; `ListaDin.buscar` returns a value or `null`.
+- `poner(int,Object)` replaces an occupied array element but inserts a node in a linked list. Ordered-array replacement can move the value. `ponerInicio` on an ordered array places the value according to order.
+- Ordered arrays reject duplicates. Their numeric `rellenar(Object)` generates integer sequences; fractional/nonfinite/out-of-range bounds are ignored. The two-argument fill inserts at most one copy, consistent with uniqueness.
+- `modificarLista(Arreglo,Arreglo)` means indices/new values; `modificarLista(ListaDatos,ListaDatos)` means old/new values. Use the intended static types, as the corrected ordered-array main does.
+- Some ordinary-array/list bulk operations may partially apply before returning failure. Ordered batch replacement and KNN dataset loading validate a temporary custom structure before publishing it.
+- Arrays still compare capacity in `esIgual`. Text equality is case-insensitive `toString()` equality; it does not imply general numeric or deep object equality.
+- Copies/clones are shallow. Ordinary array/list substitution can share backing storage or nodes. Do not structurally mutate during iteration; not every mutator invalidates an active iterator. Direct mutable getters can bypass validation and ordering.
+- `ListaDin.esSublista` tests a contiguous sequence; the array version tests membership. Linked-list resizing truncates but does not pad. Null values are supported only by explicitly checked paths; `ListaDinClave` rejects null keys/values.
+- Negative capacities/dimensions follow Java allocation behavior in several constructors. No custom allocator, automatic growth policy, generic type migration, or unified collection API was introduced.
 
-## Build and distribution boundaries
+## Mathematical and application boundaries
 
-JDK 21 compilation includes the existing local JAR. Maven's `systemPath` can emit a portability warning and is unsuitable for transitive consumption by another Maven project; it is retained here to describe the already bundled dependency without introducing another artifact. Resources stay under their original filesystem paths rather than a classpath-resource layout. The packaged JAR has no main manifest and is not self-contained. Run the selected examples from the checkout, preferably through `scripts/run.sh`.
+**Vector dependence:** `sonLinealmenteDependientes` still checks one supplied nonzero coefficient combination. Establishing whether any nontrivial combination exists requires a separate algorithm, such as elimination. That redesign was not substituted for the original exercise. Orthogonality now checks dimensions; parallelism handles zero coordinates and rejects zero vectors as directionless, using a small relative tolerance for ratios.
 
-Windows PowerShell commands are provided as an alternative but were not executed on Windows. The Bash scripts and current verification were run on Linux. The verification suite is a plain main class and is not automatically discovered by Maven's default test lifecycle.
+**KNN:** correctness checks use explicit small datasets, including the previously failing two-row case, rounded-feature weights, equal distances, voting ties, partial-capacity loading, and malformed inputs. They are not an accuracy study. The implementation retains raw weighted squared distances, integer-rounded bins, custom array storage, and insertion-based ordering; it does not add scaling or missing-feature inference. Recreate the classifier after reloading/mutating its training data, because weights are calculated at construction. Very large distances are rejected on nonfinite arithmetic. This implementation is intended for small educational datasets.
 
-## Follow-up proposals, not implemented
+**Calculator:** numeric binary operators `+ - * / ^` are supported; unary minus, implicit multiplication, symbolic algebra, and general scientific-notation grammar are not. Exponentiation is now right-associative. The legacy postfix utility accepts compact single-digit examples or whitespace-separated numeric tokens. It returns `null` for invalid expressions; calculator methods throw `IllegalArgumentException`.
 
-1. Define the supported collection contracts before implementing stubs, unifying sentinel values, changing null/equality semantics, or altering public APIs.
-2. Review KNN separately: numeric pair ordering while retaining custom storage, consistent discretized counts, dataset dimensions, neighbor ties, and a known-result classification suite. This spans several methods and should be reviewed as its own change.
-3. Decide how dynamic-stack tail removal and reverse traversal should work with the existing singly linked nodes; implement pending methods only in a separately scoped change.
-4. Review mathematical contracts and explanatory output independently for vector dependence, Pearson normalization, calculator associativity, and regression input assumptions.
-5. Repair audio frame counts, race axes, and simulation time semantics separately, each with small known-result examples before treating those applications as complete.
+**Recursive encoding and sorting:** text transformation does not escape literal/nested parentheses and is not secure encryption. Recursion is not bounded for arbitrarily large text. Merge Sort still compares numbers via `double`, can change wrapper types, and can lose large-integer precision; the original numeric approach was preserved.
+
+**Statistics:** empty/zero-variance Pearson input returns `0.0` by the existing convention, although correlation is mathematically undefined there. Finite values and equal lengths are required; extreme floating-point magnitudes can still lose precision. Regression retains its fixed learning rate and 100,000 iterations, rejects invalid pairs and detects nonfinite divergence, but does not guarantee convergence for arbitrary data.
+
+**Audio:** WAV frame integrity is checked for synthetic mono/stereo data, empty results, speed changes, silence removal, and writing. The original plus-sign filter formula and direct frame sampling are retained; no filtering-quality or resampling-quality claim is made. PCM serialization rejects nonfinite/out-of-range amplitudes instead of silently wrapping them; a negative full-scale quantization margin is allowed. Adjust volume before writing if amplification exceeds range. Arbitrary WAV formats and very large files are not exhaustively tested.
+
+**Images:** known grayscale pixel blocks check flips, rotations, transpose, negative and brightness; frame/resize dimensions and a 1 × 1 result are checked. JPEG output remains lossy and opaque. Size validation does not guarantee that every positive allocation fits available memory.
+
+**Records and simulation:** farming calculations use generated values in the original main; deterministic fixtures validate selected queries without changing that generation approach. Sales remain sample records without a full business-rule model. Airport processing is discrete and priority-based, bounded to 50 queued aircraft; it is not a real-time runway/scheduling model. All queued planes are eligible for priority processing, including future planned times. Waiting minutes still use an `int` result, checked for overflow.
+
+## Build and distribution
+
+JDK 21 and the existing bundled chart JAR are required. No new application/test dependency was added. Maven's `systemPath` warning remains because the project describes its already bundled JAR; it is not designed for transitive consumption as another Maven project's dependency. Resources remain filesystem inputs, the packaged JAR has no main manifest, and native Windows execution has not been checked. Run the executable verification with `scripts/verify.sh`; Maven's default test discovery does not run these plain main classes.
+
+Original PDFs and historic output folders remain untouched. Historical screenshots are illustrations; current results come from executable checks and recorded example runs.
+
+## Separate proposals
+
+A general vector-dependence solver, a unified/null-safe generic collection API, immutable datasets/iterators, normalized KNN evaluation on a held-out dataset, improved audio resampling/filter design, and general expression grammar would change the original approach more substantially. They remain separate proposals, not claimed features.

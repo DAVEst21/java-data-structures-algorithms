@@ -1,24 +1,20 @@
 # Verification record
 
-This record separates historical reports, source inspection, compilation, example execution, and actual behavior checks. It does not provide a coverage percentage, benchmark, or guarantee for the full project.
+This record separates historical academic reports, source inspection, compilation, current example execution, and checked behavior. No coverage percentage, benchmark, model accuracy, or guarantee for every input is claimed.
 
-## Source inspected
+## Current result
 
-Detailed inspection covered the array, linked-list, stack, queue, priority, and matrix implementations; custom node/comparison support; Merge Sort; recursive conversion, validation, and text transformation; calculator; file/terminal I/O; housing Pearson/regression; image processing; and KNN. Audio, race, sales, farming, and airport code were inspected for entry points, dependencies, resource assumptions, and limitations, with less complete behavioral review.
+- All **91 production Java source files** compile with Temurin JDK 21.0.13, UTF-8, and the existing local chart JAR.
+- The original checking class passes **14/14 groups**.
+- The additional checking classes pass **384 assertions** over completed collection methods, ordered mutation, KNN, I/O, calculator, records, statistics, media, and simulation.
+- Maven 3.9.9 packaging with `-DskipTests` also passes. Maven uses its normal build plugins; no new application/test dependency was added.
+- `bash scripts/verify.sh` compiles and runs both checking entry points. No test framework or Java assertion flag is required.
 
-The project contains 91 production Java source files. All were compiled. That count is not a claim that every line or method was individually validated. The [academic mapping](ACADEMIC_NOTES.md) identifies the sixteen PDFs considered and which historical screenshots were examined.
-
-## Compilation checked
-
-- Linux, Temurin OpenJDK 21.0.13; UTF-8; release target 21 for the scripts.
-- The preserved original source compiled before any code changes when the bundled JAR was supplied explicitly.
-- `bash scripts/build.sh` compiles all production sources with `javac` and the existing JAR.
-- `bash scripts/verify.sh` compiles production and checking sources and runs `comprobaciones.Comprobaciones`.
-- Maven 3.9.9: `mvn -DskipTests package` passed with JDK 21, using the existing local JAR declared in the POM. Maven and its default build-plugin downloads were held outside the repository; no application or test dependency was added. Its main-class property now points to the actual package. The executable checks must still be run with `scripts/verify.sh`.
+The source was inspected in detail around every changed method and its callers. The original sixteen PDFs were already reviewed and remain untouched; the [report mapping](ACADEMIC_NOTES.md) distinguishes their historical claims from the current source.
 
 ## Checked behaviors
 
-The executable class reports **14/14 groups passing**:
+The original executable class still reports **14/14 groups passing**:
 
 | Group | Checked scope |
 | --- | --- |
@@ -39,45 +35,53 @@ The executable class reports **14/14 groups passing**:
 
 Checks throw on mismatches and require no assertion flags or test framework. They use small explicit expected results, not the structure implementations as a reference oracle. No production API was changed to make testing easier. Temporary synthetic image files are removed after checking.
 
-## Examples executed
+## Expanded checks
 
-The following observations came from current source execution. A zero exit status alone does not establish correctness of every printed result.
-
-| Main class (under `principales`) | Input / observation |
+| Area | Explicit checks |
 | --- | --- |
-| `utiles.ordenamiento.PrincipalMergeSort` | Existing eight values; numeric order `1,2,2,3,4,5,6,6`, including duplicates. Mixed `Double`/`Integer` output retained. |
-| `utiles.conversores.PrincipalConvertidorBinario` | Existing five values; results `10010110`, `111`, `0`, `11111111`, `10000000000`. |
-| `utiles.conversores.PrincipalConvertidorHexadecimal` | Existing five values; results `FE05`, `FF`, `0`, `10`, `3E8`. |
-| `utiles.validadores.PrincipalValidadorBinario` | Existing five values; results `true,false,true,true,false`. |
-| `colas.PrincipalColaPrioridad` | Both priority directions, empty removal, and full insertion demonstration; ties additionally checked in the executable class. |
-| `recursivas.PrincipalEncriptadorRecursivo` | Reads tracked input; writes encoded/decoded files under `target/`; original phrase restored. |
-| `registros.casas.PrincipalPearsonCasas` | Supplied 498 pairs; coefficient `0.7964096556804487`, matching the historical capture. |
-| `registros.casas.PrincipalGCasas` | Generated an 800 × 600 PNG; image visually inspected and included in documentation. |
-| `utiles.imagenes.PrincipalImagen` | Input `1`; original tracked image loaded, grayscale JPEG written under `target/`. Tiny-image behavior checked separately. |
-| `utiles.regresion.PrincipalRegresion` | Input `6`; supplied data produced rounded intercept `-42.846`, slope `10.367`, prediction `19.35`. No general prediction-accuracy claim. |
-| `arreglos.PrincipalArreglo` | Demonstration completed; core operations additionally checked with explicit assertions. |
-| `arreglos.PrincipalANumerico` | Demonstration completed; advanced vector claims remain unverified. |
-| `arreglos.PrincipalAOrdenado` | Only menu startup/exit with end-of-input; term management was not exercised. |
-| `arreglos.PrincipalAOrdenadoMetodos` | Demonstration completed; descending/mutation limitations remain. Random shuffle has no fixed output claim. |
-| `arreglos.PrincipalArreglo2D`, `arreglos.PrincipalArreglo2DNumerico` | Demonstrations completed; selected matrix behaviors checked independently. |
-| `listas.PrincipalListaDin`, `listas.PrincipalListaDinClave` | Demonstrations completed; partial interface implementations still present. |
-| `pilas.PrincipalPila` | Printed `R,M,T,S,A` on separate lines, in LIFO display order. |
-| `registros.ventas.PrincipalVentas`, `registros.ventas.PrincipalVentas2` | Printed sample totals `116.0` and `124.0`; all business cases not verified. |
-| `registros.carreras.PrincipalCarreras` | Completed but aggregate result was `null`; preserved as a limitation, not a passing aggregation check. |
-| `registros.casas.PrincipalAnalisisCasas` | Completed with supplied files; grouping output and statistical explanatory text not fully validated. |
-| `utiles.matematicas.PrincipalExpresionArit` | Existing single-character postfix example printed `-2.0`; separate infix conversion is unfinished. |
+| Linked stack and list | Fifteen-node reverse display, full LIFO removal, singleton/empty reuse, conversion and occurrence results beyond ten nodes, negative indices, contiguous overlapping sublists, self-append, aliases, zero-column matrix conversion |
+| Array interface methods | Head insertion, full rejection, aliases, reverse output, iterators, occurrence lists, filtered copies, matrix conversion/import by rows and columns, capacity preflight, membership, retention, old/new replacement, bounded/default fill, numeric storage, null comparison, empty statistics and negative maxima |
+| Ordered arrays | Both directions, inversion of empty/nonempty arrays, insertion/search, duplicate rejection, replacement without data loss, inherited setters, head insertion, full bulk insertion, numeric/character fills, both batch overloads, atomic duplicate rejection and substitution; textual comparison remains case-insensitive |
+| KNN | Previously failing rows `2,A` / `10,B`, query `0`, k=1 now yield `A`; partial reserved capacity; equal-distance rows and majority votes; nearest tied class; invalid k/shapes/nonfinite/empty/malformed files; failed-load preservation; fractional features rounded consistently; uniform zero-information fallback |
+| Text I/O | UTF-8 two-line round-trip, empty-file write/read, missing-file result, three consecutive terminal reads, EOF and invalid number rejection |
+| Calculator | Completed infix conversion, spaced numeric and legacy compact postfix, original report result, precedence, `2^3^2 == 512`, malformed syntax/parentheses/operators, division by zero, stack capacity and repeated use |
+| Race records | Two runners, three events and two years; `90 + 10 == 100` on unequal axis dimensions; missing runner and invalid distance |
+| Farming | Explicit monthly values rather than random output as oracle; mean `6.5`, month `12`, second-period sum `26`, final-year December `60`, best year `5`, season, worst farmer and empty-manager behavior |
+| Sales | Invalid/null items and nonpositive quantities rejected, fixed-capacity parallel arrays stay aligned, known total `14`, and cashier name mapping |
+| Housing/regression | Equal finite pairs, negative correlation `-1`, grouped mean `20`, minimum/maximum `10/30`, mismatched length/nonfinite data rejection; original known regression remains checked |
+| WAV | Synthetic 16-bit mono/stereo fixtures, known energy, speed output lengths, header frame counts after transformations, silence removal to zero frames, empty filter/write, channel-preserving reversal, invalid factors/thresholds/divisor |
+| Images | Known grayscale pixel blocks after horizontal/vertical flips, 90/180/270-degree rotations, transpose, negative; JPEG tolerance ten intensity units; one-pixel resize, frame size, extreme positive brightness, invalid factor and negative frame |
+| Airport | Epoch timestamps beyond int range, waiting minutes, refreshed priorities after 20 simulated minutes with a newly arriving plane, one-runway processing, empty queue and negative-time rejection |
+| Remaining guards | Inherited numeric mutations, vector dimensions/zero coordinates, parallel-list lengths, retained null values, and null key/value rejection |
 
-## Minimal logic corrections
+The additional assertion count is printed by the test code. Tests use known expected results and temporary files; those files are removed. Shuffling is checked for element preservation, not a particular random permutation. No production structure was replaced by a library collection, and no production API was added solely to expose test internals.
 
-Before correction, the same executable suite passed 12/14 groups. The remaining two failed for these reasons:
+## Current example runs
 
-1. **`Arreglo.invertir`:** an empty array has `indiceSuperior == -1`; integer division made the old loop enter and access invalid cells. The loop now swaps fewer than `cantidad()/2` pairs. It preserves the original symmetric-swap approach and does no work on empty/singleton arrays.
-2. **`ColaDin.quitar`:** the value overload of `ListaDin.quitar` removes all occurrences. For `uno,dos,uno`, successive dequeues returned `uno,dos,null`. Removing position zero instead produces `uno,dos,uno`. The linked-list value-removal contract is unchanged.
+The following original mains were executed after the corrections. Successful process termination alone is not treated as verification of every printed claim.
 
-Other edits affect build configuration, resource/output paths, and two image-menu option labels. Sorting, numerical algorithms, recursive implementations, nodes, and public method/package names were not rewritten.
+| Example | Current observation |
+| --- | --- |
+| `PrincipalPilaDin` | Input `5,10,15`; removes `15.0`, displays `10.0->5.0->null`, then clears. |
+| `PrincipalColaDin` | Input `uno,dos,uno`; first removal preserves `dos->uno`. |
+| `PrincipalCarreras` | Original aggregation now reports `Recorridos 90.0`. |
+| `PrincipalGranja` | All menu options A–G followed by X executed; random quantities are not fixed-result evidence. Deterministic fixtures supply the assertions. |
+| `PrincipalVentas`, `PrincipalVentas2` | Retain example totals `116.0` and `124.0`; cashier name no longer displays the RFC. |
+| `PrincipalCalculadora` | Expression `(a-2.0)*f/2^(c-8)` with values `1,3,12` yields `-0.1875` through consecutive terminal prompts. |
+| `PrincipalKnnFrutas`, `PrincipalKnnVehiculos` | Both load their supplied files and complete prompted classification. Correctness assertions use synthetic known-result data, not real-file predictions as an accuracy claim. |
+| `PrincipalAudio` | Reads the supplied stereo WAV, reports energy and writes a reversed WAV under `target/`; synthetic fixtures verify output framing separately. |
+| `PrincipalSimulacionAeropuerto` | Uses full epoch timestamps and updates waiting durations/priorities after advancing time. |
+| `PrincipalAOrdenadoMetodos` | Runs both directions and the corrected old/new-value overload; random shuffle has no fixed-output assertion. |
+| `PrincipalAnalisisCasas` | Completes with supplied files and corrected Pearson normalization explanation. |
 
-## Pending and diagnostic results
+The selected Merge Sort, recursive converters/validator, recursive text, Pearson, chart, and grayscale examples remain reproducible through the scripts. Their outputs in the README are distinguished from historical captures.
 
-Separate temporary diagnostic programs reproduced dynamic-stack no-op removal, ascending insertion despite `DEC`, empty ordered-array reverse failure, negative linked-list indexing, count exceeding array capacity after an oversized fill, capacity-zero fixed-queue failure, and the two-row KNN error documented in [limitations](LIMITATIONS.md). These observations are **known failures**, not additional passing features or part of the 14 checked groups.
+## Changes and historical evidence
 
-Unverified areas include the complete collection interfaces, all menu workflows, arbitrary null/mixed types, KNN correctness, general mathematical validity of advanced vector operations, audio output, farming scenarios, race aggregation, airport time behavior, exhaustive image transforms, general regression convergence, and native Windows execution. No historical self-evaluation percentage is reused as current evidence.
+The first preservation pass fixed two lines: empty ordinary-array reversal and linked-queue duplicate removal. That initial suite moved from 12/14 to 14/14 passing groups. The follow-up request explicitly authorized completing the pending modules and repairing the identified defects; those changes are separate commits.
+
+The implementation still uses custom arrays, links, stacks, queues, matrix loops, recursive algorithms and gradient descent. Direction-aware search retains the original linear insertion approach. KNN retains its custom ordered storage. Reverse linked-stack display retains its temporary custom fixed stack. Audio retains direct sample/frame manipulation and its original filter formula.
+
+Every remaining limitation listed in [LIMITATIONS.md](LIMITATIONS.md) refers to the current code. Original report screenshots and self-evaluations do not stand in for current checks. General dependence solving, arbitrary numeric stability, signal-processing quality, KNN model accuracy and native Windows execution remain outside the verified claims.
+
+The aircraft time fields, constructor parameters, time updater and planned-time getter now use `long`. Existing int call arguments still widen normally; source consumers assigning that getter to an int must update their variable type. The original airport main was updated accordingly.
