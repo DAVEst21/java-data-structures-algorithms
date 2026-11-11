@@ -20,6 +20,7 @@ public class ComprobacionesAmpliadas {
         ordenados();
         knn();
         ComprobacionesAplicaciones.ejecutar();
+        limitesAdicionales();
         System.out.println("Extended checks passed: " + comprobaciones);
     }
 
@@ -198,6 +199,28 @@ public class ComprobacionesAmpliadas {
             igual(false, ponderado.leerDatos(archivo + ".missing"));
         } finally { Files.deleteIfExists(archivo); }
         System.out.println("PASS numeric KNN distances, discretization, ties and input validation");
+    }
+
+    private static void limitesAdicionales() {
+        ArregloOrdenado letras = new ArregloOrdenado(3, ArregloOrdenado.TipoOrdenamiento.DEC);
+        letras.poner("b"); letras.poner("a"); igual(-1, letras.poner("A"));
+        igual("b", letras.obtener(0)); igual(2, letras.buscar("A"));
+        ArregloNumerico uno = new ArregloNumerico(2), dos = new ArregloNumerico(2), corto = new ArregloNumerico(1);
+        uno.poner(0); uno.poner(2); dos.poner(0); dos.poner(4); corto.poner(1);
+        igual(true, uno.esParalelo(dos)); igual(false, uno.esOrtogonal(corto));
+        igual(false, uno.esParalelo(corto)); igual(false, uno.sumarEscalares(corto));
+        ArregloNumerico cero = new ArregloNumerico(2); cero.poner(0); cero.poner(0);
+        igual(false, uno.esParalelo(cero));
+        ListaDin original = new ListaDin(), viejos = new ListaDin(), nuevos = new ListaDin();
+        original.poner("x"); viejos.poner("x"); nuevos.poner("y"); nuevos.poner("z");
+        igual(false, original.modificarLista(viejos, nuevos)); igual("x", original.verInicio());
+        original.poner(null); ListaDin retener = new ListaDin(); retener.poner(null);
+        igual(true, original.retenerLista(retener)); igual(1, original.cantidad());
+        colecciones.edlineal.listas.listadinclave.ListaDinClave claves = new colecciones.edlineal.listas.listadinclave.ListaDinClave();
+        igual(false, claves.poner(null, "x")); igual(false, claves.poner("x", null));
+        igual(null, claves.buscar(null)); igual(false, claves.agregarListasDinamicas(viejos, nuevos));
+        igual(0, claves.cantidad());
+        System.out.println("PASS inherited mutation guards, textual ordering and vector dimensions");
     }
 
     static void rechaza(Runnable accion) {

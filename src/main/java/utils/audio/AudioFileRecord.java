@@ -185,13 +185,20 @@ public class AudioFileRecord {
         validarBuffer();
         if (buffer.cantidad() % numChannels != 0) throw new IllegalStateException("Las muestras deben formar tramas completas");
         numFrames = buffer.cantidad() / numChannels;
+        wavFileW = null;
         try {
-            wavFileW = WavFile.newWavFile(new File(destino), numChannels, numFrames, validBits, sampleRate);
             // Obtener una copia de los datos usando leerArreglo().
             Object[] copiaDatos = buffer.leerArreglo();
             double[] tempBuffer = new double[copiaDatos.length];
             // Convertir los datos a double[].
-            for (int i = 0; i < copiaDatos.length; i++) tempBuffer[i] = ((Number) copiaDatos[i]).doubleValue();
+            for (int i = 0; i < copiaDatos.length; i++) {
+                double muestra = ((Number) copiaDatos[i]).doubleValue();
+                double margen = validBits > 8 ? 1.0 / (Math.pow(2, validBits - 1) - 1) : 0;
+                if (!Double.isFinite(muestra) || muestra < -1 - margen || muestra > 1)
+                    throw new IllegalArgumentException("La amplitud PCM debe estar entre -1 y 1; ajuste el volumen antes de escribir");
+                tempBuffer[i] = Math.max(-1.0, muestra);
+            }
+            wavFileW = WavFile.newWavFile(new File(destino), numChannels, numFrames, validBits, sampleRate);
             // Escribir los datos en el archivo .wav.
             wavFileW.writeFrames(tempBuffer, (int) numFrames);
         } catch (Exception e) { throw new IllegalStateException("No se pudo escribir el audio", e); }
@@ -204,5 +211,6 @@ public class AudioFileRecord {
 
     private void validarBuffer() {
         if (buffer == null) throw new IllegalStateException("Primero debe leer el audio");
+        if (buffer.cantidad() % numChannels != 0) throw new IllegalStateException("Las muestras deben formar tramas completas");
     }
 }

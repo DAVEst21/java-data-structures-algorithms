@@ -185,7 +185,7 @@ public class ArregloNumerico extends Arreglo {
 
     // Suma múltiples escalares al arreglo actual
     public boolean sumarEscalares(ArregloNumerico escalares) {
-        if (vacia() || escalares.vacia()) {
+        if (vacia() || escalares.vacia() || cantidad() != escalares.cantidad()) {
             return false;
         }
         for (int i = 0; i <= indiceSuperior; i++) {
@@ -296,7 +296,7 @@ public class ArregloNumerico extends Arreglo {
 
     // Determina si el arreglo actual es ortogonal a otro arreglo
     public boolean esOrtogonal(ArregloNumerico lista2) {
-        if (vacia() || lista2.vacia()) {
+        if (lista2 == null || vacia() || lista2.vacia() || cantidad() != lista2.cantidad()) {
             return false;
         }
         return productoEscalar(lista2) == 0.0;
@@ -304,16 +304,23 @@ public class ArregloNumerico extends Arreglo {
 
     // Determina si el arreglo actual es paralelo a otro arreglo
     public boolean esParalelo(ArregloNumerico lista2) {
-        if (vacia() || lista2.vacia()) {
-            return false;
-        }
-        double factor = ((Number) datos[0]).doubleValue() / ((Number) lista2.obtener(0)).doubleValue();
-        for (int i = 1; i <= indiceSuperior; i++) {
-            if (((Number) datos[i]).doubleValue() / ((Number) lista2.obtener(i)).doubleValue() != factor) {
-                return false;
+        if (lista2 == null || vacia() || lista2.vacia() || cantidad() != lista2.cantidad()) return false;
+        Double factor = null;
+        for (int i = 0; i < cantidad(); i++) {
+            double a = ((Number) obtener(i)).doubleValue();
+            double b = ((Number) lista2.obtener(i)).doubleValue();
+            if (!Double.isFinite(a) || !Double.isFinite(b)) return false;
+            if (b == 0) {
+                if (a != 0) return false;
+            } else {
+                double actual = a / b;
+                if (!Double.isFinite(actual)) return false;
+                if (factor == null) factor = actual;
+                else if (Math.abs(actual - factor) > 1e-10 * Math.max(1, Math.abs(factor))) return false;
             }
         }
-        return true;
+        // El vector cero no determina una dirección para hablar de paralelismo.
+        return norma() > 0 && lista2.norma() > 0;
     }
     @Override
     public boolean modificar(int indice, Object valor) {

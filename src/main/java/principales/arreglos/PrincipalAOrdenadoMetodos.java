@@ -124,7 +124,7 @@ public class PrincipalAOrdenadoMetodos {
         ArregloOrdenado listaNueva = new ArregloOrdenado(2, ArregloOrdenado.TipoOrdenamiento.INC);
         listaNueva.poner(20);
         listaNueva.poner(70);
-        arreglo.modificarLista(listaVieja, listaNueva);
+        arreglo.modificarLista((ListaDatos) listaVieja, (ListaDatos) listaNueva);
         Salida.salidaPorDefecto("Arreglo después de modificar la lista (2, 7) con (20, 70):\n");
         arreglo.imprimir();
     }

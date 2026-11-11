@@ -16,6 +16,7 @@ public class ListaDinClave {
 
     // a) Insertar al final, permite duplicados en valor pero no en clave
     public boolean poner(Object clave, Object valor) {
+        if (clave == null || valor == null) return false;
         NodoClaveValor nuevo = new NodoClaveValor(clave, valor);
         if (nuevo == null) {
             return false;
@@ -47,6 +48,7 @@ public class ListaDinClave {
 
     // b) Quitar elemento por clave
     public Object quitar(Object clave) {
+        if (clave == null) return null;
         NodoClaveValor actual = primero;
         NodoClaveValor anterior = null;
 
@@ -73,6 +75,7 @@ public class ListaDinClave {
 
     // c) Quitar elemento por valor
     public Object quitarContenido(Object valor) {
+        if (valor == null) return null;
         NodoClaveValor actual = primero;
         NodoClaveValor anterior = null;
 
@@ -99,6 +102,7 @@ public class ListaDinClave {
 
     // d) Buscar por clave
     public Object buscar(Object clave) {
+        if (clave == null) return null;
         NodoClaveValor actual = primero;
         while (actual != null) {
             if (actual.getClave().toString().equalsIgnoreCase(clave.toString())) {
@@ -111,6 +115,7 @@ public class ListaDinClave {
 
     // e) Buscar por contenido
     public Object buscarContenido(Object valor) {
+        if (valor == null) return null;
         NodoClaveValor actual = primero;
         while (actual != null) {
             if (actual.getValor().toString().equalsIgnoreCase(valor.toString())) {
@@ -123,6 +128,7 @@ public class ListaDinClave {
 
     // f) Cambiar valor por clave
     public boolean cambiar(Object clave, Object valor) {
+        if (clave == null || valor == null) return false;
         NodoClaveValor actual = primero;
         while (actual != null) {
             if (actual.getClave().toString().equalsIgnoreCase(clave.toString())) {
@@ -136,6 +142,7 @@ public class ListaDinClave {
 
     // f) Cambiar valor viejo por nuevo
     public boolean cambiarValor(Object valorViejo, Object valorNuevo) {
+        if (valorViejo == null || valorNuevo == null) return false;
         NodoClaveValor actual = primero;
         boolean cambiado = false;
         while (actual != null) {
@@ -293,6 +300,7 @@ public class ListaDinClave {
             return false;
         }
 
+        if (listaClaves.cantidad() != listaValores.cantidad()) return false;
         ListaDin clavesCopia = (ListaDin) listaClaves.clonar();
         ListaDin valoresCopia = (ListaDin) listaValores.clonar();
 

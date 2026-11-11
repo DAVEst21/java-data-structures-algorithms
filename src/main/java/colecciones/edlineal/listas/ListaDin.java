@@ -368,6 +368,7 @@ public class ListaDin implements ListaDatos {
 
         primero = nueva.primero;
         ultimo = nueva.ultimo;
+        iterador = null;
         return true;
     }
 
@@ -640,12 +641,13 @@ public class ListaDin implements ListaDatos {
         }
         ListaDin vieja = (ListaDin) lista2;
         ListaDin nueva = (ListaDin) lista2Nuevos;
+        if (vieja.cantidad() != nueva.cantidad()) return false;
         Nodo temp1 = primero;
         Nodo temp2 = vieja.primero;
         Nodo temp3 = nueva.primero;
 
         while (temp1 != null && temp2 != null && temp3 != null) {
-            if (temp1.getDato().toString().equalsIgnoreCase(temp2.getDato().toString())) {
+            if (iguales(temp1.getDato(), temp2.getDato())) {
                 temp1.setDato(temp3.getDato());
                 temp2 = temp2.getLigaDer();
                 temp3 = temp3.getLigaDer();
@@ -665,13 +667,14 @@ public class ListaDin implements ListaDatos {
         Nodo temporal = primero;
 
         while (temporal != null) {
-            if (lista.buscar(temporal.getDato()) != null) {
+            if (lista.buscarNodo(temporal.getDato()) != null) {
                 nueva.poner(temporal.getDato());
             }
             temporal = temporal.getLigaDer();
         }
         primero = nueva.primero;
         ultimo = nueva.ultimo;
+        iterador = null;
         return true;
     }
 

@@ -21,6 +21,7 @@ public class GraficadorDispersion {
 
 
     public void generarGraficoDispersion(ListaDin habitaciones, ListaDin precios, String rutaImagen) {
+        registros.casas.CalculadorPearson.validarDatos(habitaciones, precios);
         // Crear serie de datos
         XYSeries serie = new XYSeries(NOMBRE);
         habitaciones.iniciaIterador();
